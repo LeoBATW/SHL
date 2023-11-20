@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_Production_History_DB" Id="{6be3314c-eec5-4784-acf9-e05b62b5eb2f}">
+    <Declaration><![CDATA[TYPE ST_Production_History_DB : // single production data of a station
+	STRUCT
+		dtStart_time             	: DT ;					// 作業開始時間
+		rDuration               	: REAL ;				// unit: sec    (end_time - start_time)
+		dtEnd_time               	: DT ;					// 作業結束時間
+		diStation_number         	: DINT ;				// 站點編號
+		wsStation_name           	: WSTRING(255) ; 		// 站點名稱
+		diTrack_number           	: DINT ;				// 未定義  Smart Hardcode為1
+		diWpc_number            	: DINT ;				// Shuttle Id
+		bPart_ok_overal_results 	: BOOL ;				// 此站點最終判斷/作業結果為OK或NG (彙整站點上的感測器結果及作業結果)
+		sSo_number              	: STRING(12) ;			// 由HMI透過ADS告知  (DB中的So資料表需要存在對應資料)
+		sFaam_id                	: STRING(20) ;			// 由DB讀取
+		diSo_id                  	: DINT ;				// 由HMI透過ADS告知 (DB中的So資料表需要存在對應資料)
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

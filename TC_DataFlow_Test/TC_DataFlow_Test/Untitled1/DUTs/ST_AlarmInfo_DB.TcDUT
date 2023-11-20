@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_AlarmInfo_DB" Id="{563dd712-f444-4d56-93e0-694aedfbf2cc}">
+    <Declaration><![CDATA[// X64 size: 4984 byte
+TYPE ST_AlarmInfo_DB :
+STRUCT
+	lrTime_ms    	: LREAL ;		
+	iMsgProc    	: INT ;			// 未明 先填1
+	iStateAfter 	: INT ;			// 1: Error trigger  0: reset
+	iMsgClass   	: INT ;			// 1: error 2: warning 3: msg
+	diMsgNumber  	: DINT ;		// MsgCode等同於ErrorId
+	wsVar1			: WSTRING(255);	// 備註1(可不填)
+	wsVar2			: WSTRING(255);	// 備註2(可不填)
+	wsVar3			: WSTRING(255);	// 備註3(可不填)
+	wsVar4			: WSTRING(255);	// 備註4(可不填)
+	wsVar5			: WSTRING(255);	// 備註5(可不填)
+	wsVar6			: WSTRING(255);	// 備註6(可不填)
+	wsVar7			: WSTRING(255);	// 備註7(可不填)
+	wsVar8			: WSTRING(255);	// 備註8(可不填)
+	sTimeString 	: STRING(25); 	// Data Format: '2023-08-15 15:11:14'  		// SQL Database為char type 26bytes 
+	wsMsgText    	: WSTRING(255); // 文字訊息(顯示在HMI給使用者看的訊息)
+	sPLC        	: STRING(255); 	// Data Format: 'CoreSys' 
+	wsEquipment  	: WSTRING(25);
+	sFaam_id    	: STRING(20);
+	
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_DataToNovRam" Id="{76f3141b-7a21-4959-afa9-90d9594b687d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DataToNovRam
+VAR_INPUT
+	bExecute:BOOL;
+	
+	savedData:ST_AlarmInfo_DB_save;
+END_VAR
+VAR_OUTPUT
+	bResult:BOOL;
+END_VAR
+VAR
+	
+END_VAR
+VAR_IN_OUT
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_AlarmHistory" Id="{aac47326-eba1-4863-89c8-9d8cb955d250}">
+      <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
+VAR_INPUT
+	addData:ST_AlarmInfo_DB_save;
+END_VAR
+VAR
+	i:UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF GVL.NovRamData.NovRam_Status.RowDataLocked[GVL.NovRamData.NovRam_Status.nowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.AlarmHistory[GVL.NovRamData.NovRam_Status.nowRowIndex][GVL.NovRamData.NovRam_Status.writenIndex]:=addData;
+	
+	GVL.NovRamData.NovRam_Status.writenIndex:=GVL.NovRamData.NovRam_Status.writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.NovRam_Status.writenIndex >= (GVL.AlarmHistory_ArrayLength - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.NovRam_Status.RowDataLocked[GVL.NovRamData.NovRam_Status.nowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.NovRam_Status.nowRowIndex:=(GVL.NovRamData.NovRam_Status.nowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.NovRam_Status.writenIndex:=0;
+	END_IF
+	
+	M_AlarmHistory:=TRUE;
+ELSE
+	M_AlarmHistory:=FALSE;
+END_IF
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_DataToNovRam">
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_AlarmHistory">
+      <LineId Id="107" Count="22" />
+      <LineId Id="69" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

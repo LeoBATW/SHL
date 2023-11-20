@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_DataBaseStatus" Id="{56a13071-7569-4e14-95a8-23ba2da1de48}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_DataBaseStatus :
+(
+	ONLINE := 0,
+	RESTORING,
+	RECOVERING,
+	RECOVERY_PENDING,
+	SUSPECT,
+	EMERGENCY,
+	OFFLINE,
+	COPYING,
+	OFFLINE_SECONDARY
+)USINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

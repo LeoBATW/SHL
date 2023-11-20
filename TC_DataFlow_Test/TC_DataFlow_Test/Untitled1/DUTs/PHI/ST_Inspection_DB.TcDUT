@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_Inspection_DB" Id="{28678627-0b5e-47de-9bfa-4ca957583d51}">
+    <Declaration><![CDATA[TYPE ST_Inspection_DB : // Sensor inspection information and result
+	STRUCT
+		diSub_station_number 	: DINT ;			// 站點上第N組感測器
+		sSensor_type        	: STRING(50) ;	// Sensor類型
+		bInspection_results 	: BOOL ;			// Sensor回傳結果
+		rInspection_value   	: REAL ;			// Sensor回傳數值
+		sFaam_id            	: STRING(20) ;
+		sSo_number          	: STRING(12) ;
+		//product_history_id 	: LINT ;
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

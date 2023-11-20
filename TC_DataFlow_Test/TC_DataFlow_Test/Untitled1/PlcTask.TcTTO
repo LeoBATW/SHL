@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Task Name="PlcTask" Id="{fe279604-3f70-401d-bc78-469741ec26cd}">
+    <!--CycleTime in micro seconds.-->
+    <CycleTime>10000</CycleTime>
+    <Priority>20</Priority>
+    <PouCall>
+      <Name>MAIN</Name>
+    </PouCall>
+    <PouCall>
+      <Name>PG_AlarmHistory</Name>
+    </PouCall>
+    <TaskFBGuid>{38072101-7965-4a8a-9574-b7838edd1ac4}</TaskFBGuid>
+    <Fb_init>{51cc2c27-5aa0-4eb6-9711-a2bfc66157ec}</Fb_init>
+    <Fb_exit>{481400b3-ad39-47e2-a1e6-6e55fbdbed6d}</Fb_exit>
+    <CycleUpdate>{8dcceb0b-56ab-4259-af0d-9912e3165936}</CycleUpdate>
+    <PostCycleUpdate>{aa1b1821-8efc-4c9f-996d-0c7f383fbb74}</PostCycleUpdate>
+  </Task>
+</TcPlcObject>

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_CmdPara_PHI_DB" Id="{ad78f5a1-f568-43e5-a4ae-01caadd18b86}">
+    <Declaration><![CDATA[TYPE ST_CmdPara_PHI_DB :
+	STRUCT
+		//Product History
+		dt_start_time            : DT ;
+		r_duration               : REAL ;
+		dt_end_time              : DT ;
+		di_station_number        : DINT ;
+		wstr_station_name        : WSTRING(255) ; //20221107
+		di_track_number          : DINT ;
+		di_wpc_number            : DINT ;
+		b_part_ok_overal_results : BOOL ;
+		str_so_number            : STRING(12) ;
+		str_faam_id              : STRING(20) ;
+		di_so_id                 : DINT ;
+		
+		//1st Inspection
+		di_sub_station_number_1 : DINT ;
+		str_sensor_type_1       : STRING(50) ;
+		b_inspection_results_1  : BOOL ;
+		r_inspection_value_1    : REAL ;
+		str_faam_id_1           : STRING(20) ;
+		str_so_number_1         : STRING(12) ;
+		
+		//2nd Inspection
+		di_sub_station_number_2 : DINT ;
+		str_sensor_type_2       : STRING(50) ;
+		b_inspection_results_2  : BOOL ;
+		r_inspection_value_2    : REAL ;
+		str_faam_id_2           : STRING(20) ;
+		str_so_number_2         : STRING(12) ;
+		
+		//3nd Inspection
+		di_sub_station_number_3 : DINT ;
+		str_sensor_type_3       : STRING(50) ;
+		b_inspection_results_3  : BOOL ;
+		r_inspection_value_3    : REAL ;
+		str_faam_id_3           : STRING(20) ;
+		str_so_number_3         : STRING(12) ;
+		
+		//4nd Inspection
+		di_sub_station_number_4 : DINT ;
+		str_sensor_type_4	     : STRING(50) ;
+		b_inspection_results_4  : BOOL ;
+		r_inspection_value_4    : REAL ;
+		str_faam_id_4           : STRING(20) ;
+		str_so_number_4         : STRING(12) ;
+		
+		//5nd Inspection
+		di_sub_station_number_5 : DINT ;
+		str_sensor_type_5       : STRING(50) ;
+		b_inspection_results_5  : BOOL ;
+		r_inspection_value_5    : REAL ;
+		str_faam_id_5           : STRING(20) ;
+		str_so_number_5         : STRING(12) ;
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

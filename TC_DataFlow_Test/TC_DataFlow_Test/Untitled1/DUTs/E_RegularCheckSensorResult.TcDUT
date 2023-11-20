@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_RegularCheckSensorResult" Id="{0b20f533-718e-45c8-bd27-0aaba06f1749}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_RegularCheckSensorResult :
+(
+	Null, // 感測器沒判定過/使用  DB寫Null
+	Pass, // 判定結果為OK  DB寫1
+	Fail // 判定結果為NG  DB寫0
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

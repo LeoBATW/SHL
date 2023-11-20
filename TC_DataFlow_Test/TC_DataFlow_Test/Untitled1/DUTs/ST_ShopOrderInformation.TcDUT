@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_ShopOrderInformation" Id="{a1683826-1970-44a6-89b2-d080698769a7}">
+    <Declaration><![CDATA[TYPE ST_ShopOrderInformation :
+STRUCT
+	diSo_id                    	: DINT ;
+	sSo_number               	: STRING(12) ;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_NovRam" Id="{7c75aaaa-a2eb-4f44-932e-75a37d1491e1}">
+    <Declaration><![CDATA[TYPE ST_NovRam :
+STRUCT
+	
+	//Status
+	NovRam_Status:ST_NovRam_Status;
+	FileRingBuffer_Status:ST_FileRingBuffer_Status;
+	
+	//DATA
+	AlarmHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.AlarmHistory_ArrayLength-1] OF ST_AlarmInfo_DB_save;
+	ProductionHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.ProductionHistory_ArrayLength-1] OF ST_Production_History_DB_Test;
+	(*
+	ProductionReport:ARRAY [0..2] OF ST_OEE_ProductionReport;
+	ProductionSummary:ARRAY [0..2] OF ST_OEE_ProductionSummary;
+	SoDuration:ARRAY [0..2] OF ST_SoDuration;
+	StopCount:ARRAY [0..2] OF ST_StopCount;
+	RegularCheckResults:ARRAY [0..2] OF ST_RegularCheck_Results;
+	*)
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

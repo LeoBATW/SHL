@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_PHI_GroupData_DB" Id="{a810edeb-16cf-49e7-a4a2-0a2a8913315c}">
+    <Declaration><![CDATA[ //Product History and Inspection data
+ //X64 size: 1064 bytes
+TYPE ST_PHI_GroupData_DB : //Production information of the station, including single production data and sensor results
+	STRUCT
+		stProductHistory        						: ST_Production_History_DB ; // single production data
+		arrstInspection         						: ARRAY[1..5] OF ST_Inspection_DB ; //max sensor number = 5
+		arrbInspectionResultHaveSensorValue           	: ARRAY[1..5] OF BOOL ; // return data of the sensor have a numerical value
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_OEE_ProductionReport" Id="{56fe45b1-2728-4934-91ca-ffa93bc9b4af}">
+    <Declaration><![CDATA[// X64 size: 172 bytes
+TYPE ST_OEE_ProductionReport :
+	STRUCT
+		wsOee_equipment            	: WSTRING(25) ;
+		dtTime_start               	: DT ;
+		dtTime_end                 	: DT ;
+		diAverage_ppm              	: DINT ;
+		diIdeal_production         	: DINT ;
+		diOk_part_count            	: DINT ;
+		rTotal_idle_time          	: REAL ;
+		diReal_production          	: DINT ;
+		diGood_parts               	: DINT ;
+		rGood_parts_percentage    	: REAL ;
+		diQuantity_loss            	: DINT ;
+		rQuantity_loss_percentage 	: REAL ;
+		rPm                       	: REAL ;
+		rYm                       	: REAL ;
+		rAm                       	: REAL ;
+		rEm                       	: REAL ;
+		rOm                       	: REAL ;
+		rAvailable_time           	: REAL ;
+		rSchedule_loss            	: REAL ;
+		rRunning_time             	: REAL ;
+		rDowntime_loss            	: REAL ;
+		sFaam_id                  	: STRING(20) ;
+		sSo_number               	: STRING(12) ;
+		diSo_id                    	: DINT ;
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PG_AlarmHistory" Id="{54f410b2-b83a-4d7a-938e-1ab226b5f3f6}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PG_AlarmHistory
+VAR
+	i:UDINT;
+	AlarmHistoryData_Write:ST_AlarmInfo_DB_save;
+	
+	bWriteResult: ARRAY[0..GVL.Max_IndexNum-1] OF BOOL;
+	
+	repeatTimer:TON;
+	writeFailCount:UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+//simulate that Peak Data amount as 500 ms
+repeatTimer(IN:=TRUE,PT:=T#300MS);
+
+IF repeatTimer.Q THEN
+	
+	repeatTimer(in:=FALSE);
+	
+	//simulate Peak save data amount
+	FOR i:=0 TO GVL.Max_IndexNum-1 DO
+		bWriteResult[i]:=GVL.fbDataToNovRam[i].M_AlarmHistory(addData:=AlarmHistoryData_Write);
+		
+		IF bWriteResult[i]=FALSE THEN
+			writeFailCount:=writeFailCount+1;
+		END_IF
+	END_FOR
+	
+END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="PG_AlarmHistory">
+      <LineId Id="71" Count="0" />
+      <LineId Id="66" Count="2" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="43" Count="2" />
+      <LineId Id="94" Count="3" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_RegularCheck_Results" Id="{651dd274-845a-4e71-a131-9a7c2e61e9e1}">
+    <Declaration><![CDATA[// X64 size: 572 bytes
+TYPE ST_RegularCheck_Results :
+	STRUCT
+		diStation_number          	: DINT ;
+		diTrack_number            	: DINT ;
+		dtStart_time              	: DT ;
+		eSensor                  	: E_RegularCheckSensorResult ;
+		eCamera                  	: E_RegularCheckSensorResult ;
+		eLoadcell                	: E_RegularCheckSensorResult ;
+		eSensor2                 	: E_RegularCheckSensorResult ;
+		diRegular_check_id        	: DINT ;
+		sFaam_id                 	: STRING(20) ;
+		sSo_number               	: STRING(12) ;
+		diSo_id                   	: DINT ;
+		wsEmployee_name_logged_in 	: WSTRING(255) ;
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

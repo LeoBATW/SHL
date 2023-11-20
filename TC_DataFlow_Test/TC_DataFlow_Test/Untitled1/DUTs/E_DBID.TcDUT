@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_DBID" Id="{4e0644dd-e59f-4125-99ae-e7b7e61e5cca}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_DBID :
+(
+	BypassDB	:= 0,
+	RemoteDB  	:= 1,
+	LocalDB		:= 2
+)UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

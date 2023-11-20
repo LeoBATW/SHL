@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL" Id="{e108cffc-e753-455e-9249-cb4b18a4135e}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	fileRingBufferSize:UDINT:=50*1000;//Byte
+	Max_IndexNum:UDINT:=40;//Index數量
+	AlarmHistory_ArrayLength:UDINT:=30;//資料的陣列長度
+	ProductionHistory_ArrayLength:UDINT:=30;
+	
+	//AlarmHistory_RowLength:UDINT:=3;
+	//AlarmHistory_FileRingBuffer_Length:UDINT:=3;
+	
+	NovRamBufferRatio:UDINT:=3;
+	FileRingBufferRatio:UDINT:=7;
+	//FileRingBufferTotalNum:UDINT:=NovRamBufferRatio*FileRingBufferRatio;
+	fileFolder:STRING(255):='c:\_Yenlin\';
+END_VAR
+
+VAR_GLOBAL
+	
+	//Data To NovRam
+	fbDataToNovRam:ARRAY[0..Max_IndexNum-1] OF FB_DataToNovRam;//30//模擬全部Index添加資料用
+	//NovRam To FileRingBuffer
+	fbNovRamToFileRingBuffer:ARRAY[0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;//3
+	//FileRingBuffer To DataBase
+	fbFileRingBufferToDB:ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
+	
+END_VAR
+
+//NovRam
+VAR_GLOBAL RETAIN
+		
+	NovRamData:ST_NovRam;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

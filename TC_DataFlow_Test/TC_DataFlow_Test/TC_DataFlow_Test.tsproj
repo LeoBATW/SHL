@@ -1,0 +1,316 @@
+<?xml version="1.0"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.29">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}" AutoDeleteType="true">ST_NovRam_Status</Name>
+			<BitSize>96</BitSize>
+			<SubItem>
+				<Name>nowRowIndex</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>writenIndex</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
+				<BitSize>32</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>RowDataLocked</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>3</Elements>
+				</ArrayInfo>
+				<BitSize>24</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{F693DC97-5FA7-45D3-6716-419E940762FA}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
+			<BitSize>416</BitSize>
+			<SubItem>
+				<Name>AlarmHistory_FileFull</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>3</Elements>
+				</ArrayInfo>
+				<ArrayInfo Level="1">
+					<LBound>0</LBound>
+					<Elements>7</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[9]]></Comment>
+				<BitSize>168</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>nowFileIndex</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>7</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[3]]></Comment>
+				<BitSize>224</BitSize>
+				<BitOffs>192</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}" AutoDeleteType="true">ST_AlarmInfo_DB_save</Name>
+			<Comment><![CDATA[ X64 size: 680 byte]]></Comment>
+			<BitSize>5440</BitSize>
+			<SubItem>
+				<Name>lrTime_ms</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000E}">LREAL</Type>
+				<BitSize>64</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>siMsgProc</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Comment><![CDATA[ 未明 先填1]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>siStateAfter</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Comment><![CDATA[ 1: Error trigger  0: reset]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>72</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>siMsgClass</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Comment><![CDATA[ 1: error 2: warning 3: msg]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>80</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>diMsgNumber</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
+				<Comment><![CDATA[ MsgCode等同於ErrorId]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>96</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sTimeString</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000019}">STRING(25)</Type>
+				<Comment><![CDATA[ Data Format: '2023-08-15 15:11:14'  		// SQL Database為char type 26bytes ]]></Comment>
+				<BitSize>208</BitSize>
+				<BitOffs>128</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wsMsgText</Name>
+				<Type GUID="{18071995-0000-0000-0000-0002000000FF}">WSTRING(255)</Type>
+				<Comment><![CDATA[ 文字訊息(顯示在HMI給使用者看的訊息)]]></Comment>
+				<BitSize>4096</BitSize>
+				<BitOffs>336</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sPLC</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000032}">STRING(50)</Type>
+				<Comment><![CDATA[ Data Format: 'CoreSys' ]]></Comment>
+				<BitSize>408</BitSize>
+				<BitOffs>4432</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>wsEquipment</Name>
+				<Type GUID="{18071995-0000-0000-0000-000200000019}">WSTRING(25)</Type>
+				<BitSize>416</BitSize>
+				<BitOffs>4848</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sFaam_id</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
+				<BitSize>168</BitSize>
+				<BitOffs>5264</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{821630D6-4048-238E-B06C-CF96D38A7509}" AutoDeleteType="true">ST_Production_History_DB_Test</Name>
+			<BitSize>864</BitSize>
+			<SubItem>
+				<Name>dtStart_time</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000004D}">DATE_AND_TIME</Type>
+				<Comment><![CDATA[ 作業開始時間]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>rDuration</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<Comment><![CDATA[ unit: sec    (end_time - start_time)]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>dtEnd_time</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000004D}">DATE_AND_TIME</Type>
+				<Comment><![CDATA[ 作業結束時間]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>usiStation_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Comment><![CDATA[ 站點編號]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>96</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sStation_name</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000032}">STRING(50)</Type>
+				<Comment><![CDATA[ 站點名稱]]></Comment>
+				<BitSize>408</BitSize>
+				<BitOffs>104</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>usiTrack_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Comment><![CDATA[ 未定義  Smart Hardcode為1]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>512</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>usiWpc_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Comment><![CDATA[ Shuttle Id]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>520</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bPart_ok_overal_results</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<Comment><![CDATA[ 此站點最終判斷/作業結果為OK或NG (彙整站點上的感測器結果及作業結果)]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>528</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sSo_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-00010000000C}">STRING(12)</Type>
+				<Comment><![CDATA[ 由HMI透過ADS告知  (DB中的So資料表需要存在對應資料)]]></Comment>
+				<BitSize>104</BitSize>
+				<BitOffs>536</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sFaam_id</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
+				<Comment><![CDATA[ 由DB讀取]]></Comment>
+				<BitSize>168</BitSize>
+				<BitOffs>640</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>diSo_id</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
+				<Comment><![CDATA[ 由HMI透過ADS告知 (DB中的So資料表需要存在對應資料)]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>832</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{6EA499DE-9AF6-60D0-C50C-1CEC02B11816}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>567872</BitSize>
+			<SubItem>
+				<Name>NovRam_Status</Name>
+				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
+				<Comment><![CDATA[Status]]></Comment>
+				<BitSize>96</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FileRingBuffer_Status</Name>
+				<Type GUID="{F693DC97-5FA7-45D3-6716-419E940762FA}">ST_FileRingBuffer_Status</Type>
+				<BitSize>416</BitSize>
+				<BitOffs>96</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>AlarmHistory</Name>
+				<Type GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}">ST_AlarmInfo_DB_save</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>3</Elements>
+				</ArrayInfo>
+				<ArrayInfo Level="1">
+					<LBound>0</LBound>
+					<Elements>30</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[DATA]]></Comment>
+				<BitSize>489600</BitSize>
+				<BitOffs>512</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ProductionHistory</Name>
+				<Type GUID="{821630D6-4048-238E-B06C-CF96D38A7509}">ST_Production_History_DB_Test</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>3</Elements>
+				</ArrayInfo>
+				<ArrayInfo Level="1">
+					<LBound>0</LBound>
+					<Elements>30</Elements>
+				</ArrayInfo>
+				<BitSize>77760</BitSize>
+				<BitOffs>490112</BitOffs>
+			</SubItem>
+		</DataType>
+	</DataTypes>
+	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" Target64Bit="true" ShowHideConfigurations="#x106">
+		<System>
+			<Settings MaxCpus="20" NonWinCpus="4">
+				<Cpu/>
+				<Cpu CpuId="1"/>
+			</Settings>
+			<Tasks>
+				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
+					<Name>PlcTask</Name>
+				</Task>
+				<Task Id="4" Priority="1" CycleTime="10000" AmsPort="351" Affinity="#x00000001" AdtTasks="true">
+					<Name>Task 4</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project GUID="{72A2FD1F-C356-4FDC-B15A-D0CCB9187252}" Name="Untitled1" PrjFilePath="Untitled1\Untitled1.plcproj" TmcFilePath="Untitled1\Untitled1.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="Untitled1\Untitled1.tmc">
+					<Name>Untitled1 Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Vars VarGrpType="8" AreaNo="4">
+						<Name>Task_Consumer Retains</Name>
+						<Var>
+							<Name>GVL.NovRamData</Name>
+							<Type GUID="{6EA499DE-9AF6-60D0-C50C-1CEC02B11816}">ST_NovRam</Type>
+							<InOut>7</InOut>
+						</Var>
+					</Vars>
+					<Contexts>
+						<Context>
+							<Id NeedCalleeCall="true">0</Id>
+							<Name>Task_Consumer</Name>
+							<ManualConfig>
+								<OTCID>#x02010040</OTCID>
+							</ManualConfig>
+							<Priority>1</Priority>
+							<CycleTime>1000000</CycleTime>
+						</Context>
+						<Context>
+							<Id NeedCalleeCall="true">1</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010030</OTCID>
+							</ManualConfig>
+							<Priority>20</Priority>
+							<CycleTime>10000000</CycleTime>
+						</Context>
+					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="1" OTCID="#x08502001"/>
+						<TaskPouOid Prio="20" OTCID="#x08502002"/>
+					</TaskPouOids>
+				</Instance>
+			</Project>
+		</Plc>
+	</Project>
+</TcSmProject>

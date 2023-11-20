@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_DB_DataType" Id="{5d36ff0b-1d71-453f-bb6d-ed86ff8af93c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_DB_DataType :
+(
+	Double := 0,
+	StringType,
+	Ring,
+	Boolean,
+	I32,
+	U32,
+	DynamicRing
+)INT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

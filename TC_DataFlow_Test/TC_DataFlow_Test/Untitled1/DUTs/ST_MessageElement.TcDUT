@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_MessageElement" Id="{700a70ef-d380-4b94-a96c-459206c7fc7e}">
+    <Declaration><![CDATA[// X64 Size: 2052 byte
+TYPE ST_MessageElement :
+STRUCT
+	iCode						: INT;			// MsgCode (ErrorCode)
+	wsCategory					: WSTRING(255); // 文字訊息分類 EX: "Safety Message", "Beaker and Bin and Drawer Message" etc.
+	wsItem						: WSTRING(255);	// 此訊息的項目名稱，通常會與wsFirst_Language_Message重複
+	wsFirst_Language_Message  	: WSTRING(255); // 多國語言1文字訊息(此項為預設值 內文為英文)
+	wsSecond_Language_Message 	: WSTRING(255); // 多國語言2文字訊息(內文為中文或其他)
+	iMessage_Type 				: INT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

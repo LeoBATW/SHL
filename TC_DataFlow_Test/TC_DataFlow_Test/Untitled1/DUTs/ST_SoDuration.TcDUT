@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ST_SoDuration" Id="{e849ae43-3e72-4863-8f95-ac850d5439d4}">
+    <Declaration><![CDATA[// X64 size: 2100 bytes
+TYPE ST_SoDuration :
+	STRUCT
+		dtBatch_start_time            	: DT ;
+		dtBatch_end_time              	: DT ;
+		//bNormal_complition           	: BOOL ; //改放至最後才寫  放在這位置寫入DB時會導致下個資料WString在DB裡開頭多一個空白byte的資料
+		wsBatch_end_reason             	: WSTRING(255) ;
+		wsBatch_end_reason_description 	: WSTRING(255) ;
+		wsEmployee_name_start_user     	: WSTRING(255) ;
+		wsEmployee_name_end_user       	: WSTRING(255) ;
+		sSo_number                    	: STRING(12) ;
+		sFaam_id                      	: STRING(20) ;
+		diSo_id                        	: DINT ;
+		bNormal_complition           	: BOOL ;
+	END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

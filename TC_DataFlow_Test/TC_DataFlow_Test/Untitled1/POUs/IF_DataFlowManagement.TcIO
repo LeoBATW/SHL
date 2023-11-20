@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="IF_DataFlowManagement" Id="{b0865cd0-eb6d-41f6-8d41-8302e524cef9}">
+    <Declaration><![CDATA[INTERFACE IF_DataFlowManagement
+]]></Declaration>
+    <Method Name="M_ProductionHistory" Id="{f2d5415f-d3f4-439c-8e75-b044cc2e8096}">
+      <Declaration><![CDATA[METHOD M_ProductionHistory : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>
