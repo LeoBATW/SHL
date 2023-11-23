@@ -5,7 +5,8 @@
 {attribute 'strict'}
 TYPE E_StructureType :
 (
-	AlarmHistory := 0
+	AlarmHistory := 0,
+	ProductionHistory := 1
 );
 END_TYPE
 ]]></Declaration>

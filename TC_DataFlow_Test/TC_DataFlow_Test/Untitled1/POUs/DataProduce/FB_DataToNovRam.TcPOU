@@ -23,26 +23,23 @@ END_VAR]]></Declaration>
 VAR_INPUT
 	addData:ST_AlarmInfo_DB_save;
 END_VAR
-VAR
-	i:UDINT;
-END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF GVL.NovRamData.NovRam_Status.RowDataLocked[GVL.NovRamData.NovRam_Status.nowRowIndex]=FALSE THEN//writable
+        <ST><![CDATA[IF GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].RowDataLocked[GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].nowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.AlarmHistory[GVL.NovRamData.NovRam_Status.nowRowIndex][GVL.NovRamData.NovRam_Status.writenIndex]:=addData;
+	GVL.NovRamData.AlarmHistory[GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].nowRowIndex][GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].writenIndex]:=addData;
 	
-	GVL.NovRamData.NovRam_Status.writenIndex:=GVL.NovRamData.NovRam_Status.writenIndex+1;
+	GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].writenIndex:=GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].writenIndex+1;
 	
 	//Check if Full
-	IF GVL.NovRamData.NovRam_Status.writenIndex >= (GVL.AlarmHistory_ArrayLength - 1) THEN
+	IF GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].writenIndex >= (GVL.arrArrayLength[E_StructureType.AlarmHistory] - 1) THEN
 		//Set Row Lock
-		GVL.NovRamData.NovRam_Status.RowDataLocked[GVL.NovRamData.NovRam_Status.nowRowIndex]:=TRUE;
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].RowDataLocked[GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].nowRowIndex]:=TRUE;
 		
 		//Reset Row and writenIndex
-		GVL.NovRamData.NovRam_Status.nowRowIndex:=(GVL.NovRamData.NovRam_Status.nowRowIndex+1)MOD GVL.NovRamBufferRatio;
-		GVL.NovRamData.NovRam_Status.writenIndex:=0;
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].nowRowIndex:=(GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].nowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.AlarmHistory].writenIndex:=0;
 	END_IF
 	
 	M_AlarmHistory:=TRUE;
@@ -54,12 +51,54 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="M_ProductionHistory" Id="{d7343e0a-38fb-4763-8037-34bbcaf9758f}">
+      <Declaration><![CDATA[METHOD M_ProductionHistory : BOOL
+VAR_INPUT
+	addData:ST_Production_History_DB_Test;
+END_VAR
+VAR 
+	NovRamBlockIndex:UDINT;
+	
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+//==========TEST============
+
+IF GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].RowDataLocked[GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].nowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.ProductionHistory[GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].nowRowIndex][GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].writenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].writenIndex:=GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].writenIndex >= (GVL.arrArrayLength[E_StructureType.ProductionHistory] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].RowDataLocked[GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].nowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].nowRowIndex:=(GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].nowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[E_StructureType.ProductionHistory].writenIndex:=0;
+	END_IF
+	
+	M_ProductionHistory:=TRUE;
+ELSE
+	M_ProductionHistory:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_DataToNovRam">
       <LineId Id="12" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_AlarmHistory">
       <LineId Id="107" Count="22" />
       <LineId Id="69" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ProductionHistory">
+      <LineId Id="28" Count="2" />
+      <LineId Id="7" Count="20" />
+      <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

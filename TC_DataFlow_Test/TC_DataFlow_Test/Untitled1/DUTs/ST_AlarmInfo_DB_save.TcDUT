@@ -2,7 +2,7 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="ST_AlarmInfo_DB_save" Id="{d4fbdb8b-8307-4f38-904b-c8deae5cc694}">
     <Declaration><![CDATA[// X64 size: 680 byte
-TYPE ST_AlarmInfo_DB_save :
+TYPE ST_AlarmInfo_DB_save EXTENDS ST_Base:
 STRUCT
 	lrTime_ms    	: LREAL ;		
 	siMsgProc    	: SINT ;			// 未明 先填1

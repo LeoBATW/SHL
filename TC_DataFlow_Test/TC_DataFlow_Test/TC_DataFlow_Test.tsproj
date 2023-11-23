@@ -58,9 +58,15 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}" AutoDeleteType="true">ST_AlarmInfo_DB_save</Name>
+			<Name GUID="{3C02F243-7901-E27C-50EB-EA906E753981}" AutoDeleteType="true">ST_Base</Name>
+			<BitSize>0</BitSize>
+			<BaseType GUID="{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}"/>
+		</DataType>
+		<DataType>
+			<Name GUID="{93C39095-64FE-7542-2255-BAEEB42A4458}" AutoDeleteType="true">ST_AlarmInfo_DB_save</Name>
 			<Comment><![CDATA[ X64 size: 680 byte]]></Comment>
 			<BitSize>5440</BitSize>
+			<ExtendsType GUID="{3C02F243-7901-E27C-50EB-EA906E753981}">ST_Base</ExtendsType>
 			<SubItem>
 				<Name>lrTime_ms</Name>
 				<Type GUID="{18071995-0000-0000-0000-00000000000E}">LREAL</Type>
@@ -130,8 +136,9 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{821630D6-4048-238E-B06C-CF96D38A7509}" AutoDeleteType="true">ST_Production_History_DB_Test</Name>
+			<Name GUID="{12DC891C-FEB1-7F4B-BFF6-9A642950E637}" AutoDeleteType="true">ST_Production_History_DB_Test</Name>
 			<BitSize>864</BitSize>
+			<ExtendsType GUID="{3C02F243-7901-E27C-50EB-EA906E753981}">ST_Base</ExtendsType>
 			<SubItem>
 				<Name>dtStart_time</Name>
 				<Type GUID="{18071995-0000-0000-0000-00000000004D}">DATE_AND_TIME</Type>
@@ -211,24 +218,34 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{6EA499DE-9AF6-60D0-C50C-1CEC02B11816}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>567872</BitSize>
+			<Name GUID="{4EAD8211-A015-B83D-1DBC-49CCD7E13D31}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>568384</BitSize>
 			<SubItem>
-				<Name>NovRam_Status</Name>
+				<Name>arrNovRam_Status</Name>
 				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
-				<Comment><![CDATA[Status]]></Comment>
-				<BitSize>96</BitSize>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>2</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[Status
+NovRam_Status:ST_NovRam_Status;]]></Comment>
+				<BitSize>192</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>FileRingBuffer_Status</Name>
+				<Name>arrFileRingBuffer_Status</Name>
 				<Type GUID="{F693DC97-5FA7-45D3-6716-419E940762FA}">ST_FileRingBuffer_Status</Type>
-				<BitSize>416</BitSize>
-				<BitOffs>96</BitOffs>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>2</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[FileRingBuffer_Status:ST_FileRingBuffer_Status;]]></Comment>
+				<BitSize>832</BitSize>
+				<BitOffs>192</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>AlarmHistory</Name>
-				<Type GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}">ST_AlarmInfo_DB_save</Type>
+				<Type GUID="{93C39095-64FE-7542-2255-BAEEB42A4458}">ST_AlarmInfo_DB_save</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>3</Elements>
@@ -239,11 +256,11 @@
 				</ArrayInfo>
 				<Comment><![CDATA[DATA]]></Comment>
 				<BitSize>489600</BitSize>
-				<BitOffs>512</BitOffs>
+				<BitOffs>1024</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionHistory</Name>
-				<Type GUID="{821630D6-4048-238E-B06C-CF96D38A7509}">ST_Production_History_DB_Test</Type>
+				<Type GUID="{12DC891C-FEB1-7F4B-BFF6-9A642950E637}">ST_Production_History_DB_Test</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>3</Elements>
@@ -253,7 +270,7 @@
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>77760</BitSize>
-				<BitOffs>490112</BitOffs>
+				<BitOffs>490624</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
@@ -281,7 +298,7 @@
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.NovRamData</Name>
-							<Type GUID="{6EA499DE-9AF6-60D0-C50C-1CEC02B11816}">ST_NovRam</Type>
+							<Type GUID="{4EAD8211-A015-B83D-1DBC-49CCD7E13D31}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>

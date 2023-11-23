@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_FileRingBufferToDB" Id="{5407df28-5241-4688-9419-685e8c9548d2}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_FileRingBufferToDB IMPLEMENTS IF_DataFlowManagement
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FileRingBufferToDB
 VAR_INPUT
-	//udiFileNo:UDINT;
-	//fileName:STRING(255);
 	udiNovRam_BufferIndex:UDINT;
 	udiFile_Index:UDINT;
 END_VAR
@@ -14,7 +12,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);]]></ST>
+      <ST><![CDATA[M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+M_ProductionHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);]]></ST>
     </Implementation>
     <Method Name="M_AlarmHistory" Id="{ff77384c-01f1-48bd-a1b3-7abc9b26720b}">
       <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
@@ -25,7 +24,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.AlarmHistory_ArrayLength-1] OF ST_AlarmInfo_DB_save;
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
 	DataToDB:ST_AlarmInfo_DB_save;
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -34,7 +33,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.fileRingBufferSize, //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -61,7 +60,7 @@ END_VAR]]></Declaration>
 
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.FileRingBuffer_Status.AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[E_StructureType.AlarmHistory].AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName2:=M_GetFileName(structureType:=E_StructureType.AlarmHistory
@@ -123,7 +122,7 @@ CASE iStep OF
 		
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.AlarmHistory_ArrayLength THEN//not done
+		IF AnalizeIndex < GVL.arrArrayLength[E_StructureType.AlarmHistory] THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
@@ -159,7 +158,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.FileRingBuffer_Status.AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			GVL.NovRamData.arrFileRingBuffer_Status[E_StructureType.AlarmHistory].AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -184,23 +183,174 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF structureType=E_StructureType.AlarmHistory THEN
-	tempString:=CONCAT(gvl.fileFolder,'AlarmHistory');
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'AlarmHistory');
 	tempFileNo:=(udiNovRam_BufferIndex) * GVL.FileRingBufferRatio + (udiFile_Index + 1);
 	tempString2:=CONCAT(tempString,UDINT_TO_STRING(tempFileNo));
 	M_GetFileName:=CONCAT(tempString2,'.dat');
-END_IF]]></ST>
+ELSIF structureType=E_StructureType.ProductionHistory THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
+	tempFileNo:=(udiNovRam_BufferIndex) * GVL.FileRingBufferRatio + (udiFile_Index + 1);
+	tempString2:=CONCAT(tempString,UDINT_TO_STRING(tempFileNo));
+	M_GetFileName:=CONCAT(tempString2,'.dat');
+END_IF
+
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_ProductionHistory" Id="{8fa7d530-7099-445c-bf55-d19dcfd86a46}">
       <Declaration><![CDATA[{warning 'add method implementation '}
 METHOD M_ProductionHistory : BOOL
-]]></Declaration>
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_AlarmInfo_DB_save;
+	DataToDB:ST_AlarmInfo_DB_save;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName2: STRING(255);
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[fbFileRingBuffer(sPathName:=fileName2
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[E_StructureType.ProductionHistory].AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName2:=M_GetFileName(structureType:=E_StructureType.ProductionHistory
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[E_StructureType.ProductionHistory] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[E_StructureType.ProductionHistory].AlarmHistory_FileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_FileRingBufferToDB">
       <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_AlarmHistory">
       <LineId Id="46" Count="0" />
@@ -294,12 +444,17 @@ METHOD M_ProductionHistory : BOOL
     <LineIds Name="FB_FileRingBufferToDB.M_GetFileName">
       <LineId Id="5" Count="0" />
       <LineId Id="8" Count="0" />
-      <LineId Id="27" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="14" Count="0" />
+      <LineId Id="60" Count="1" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="62" Count="0" />
       <LineId Id="9" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="44" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ProductionHistory">
+      <LineId Id="39" Count="110" />
       <LineId Id="4" Count="0" />
     </LineIds>
   </POU>

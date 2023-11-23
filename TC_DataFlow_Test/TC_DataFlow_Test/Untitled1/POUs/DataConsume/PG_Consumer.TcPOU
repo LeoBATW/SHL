@@ -11,7 +11,10 @@ END_VAR
       <ST><![CDATA[
 //NovRam to File
 FOR i:= 0 TO GVL.NovRamBufferRatio-1 DO
-	GVL.fbNovRamToFileRingBuffer[i](udiNovRamIndex:=i);
+	GVL.fbNovRamToFileRingBuffer[E_StructureType.AlarmHistory][i](udiNovRamIndex:=i,dataType:=E_StructureType.AlarmHistory);
+END_FOR
+FOR i:= 0 TO GVL.NovRamBufferRatio-1 DO
+	GVL.fbNovRamToFileRingBuffer[E_StructureType.ProductionHistory][i](udiNovRamIndex:=i,dataType:=E_StructureType.ProductionHistory);
 END_FOR
 
 //File to DB
@@ -23,7 +26,10 @@ END_FOR]]></ST>
     </Implementation>
     <LineIds Name="PG_Consumer">
       <LineId Id="164" Count="0" />
-      <LineId Id="152" Count="2" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="179" Count="1" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="153" Count="1" />
       <LineId Id="39" Count="0" />
       <LineId Id="163" Count="0" />
       <LineId Id="160" Count="0" />
