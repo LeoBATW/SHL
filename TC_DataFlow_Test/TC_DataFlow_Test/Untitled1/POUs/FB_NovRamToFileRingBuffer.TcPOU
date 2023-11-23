@@ -1,0 +1,951 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_NovRamToFileRingBuffer" Id="{c9bcde8f-ded9-4a08-b333-ef2a0addac57}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_NovRamToFileRingBuffer
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+	dataType:DINT;
+END_VAR
+VAR_OUTPUT
+	//readData:ARRAY [0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
+END_VAR
+VAR
+END_VAR
+VAR_IN_OUT
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF dataType = E_StructureType.AlarmHistory THEN
+	M_AlarmHistory(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.ProductionHistory THEN
+	M_ProductionHistory(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.ProductionReport THEN
+	M_ProductionReport(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.ProductionSummary THEN
+	M_ProductionSummary(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.SoDuration THEN
+	M_SoDuration(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.StopCount THEN
+	M_StopCount(udiNovRamIndex:=udiNovRamIndex);
+ELSIF dataType = E_StructureType.RegularCheckResults THEN
+	M_RegularCheckResults(udiNovRamIndex:=udiNovRamIndex);
+END_IF
+
+
+]]></ST>
+    </Implementation>
+    <Folder Name="Sub" Id="{99009e46-9b2f-446b-9e3c-ddc566aff4a9}" />
+    <Method Name="M_AlarmHistory" Id="{0e3c3bf5-2da2-4ed3-b7d8-cece9b20ffa6}">
+      <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_OUTPUT
+	
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config	
+eStrIndex:=E_StructureType.AlarmHistory;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.arrFileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.arrFileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_GetFileName" Id="{4c99bb74-f9a5-4074-bb13-078c9bcf604a}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_GetFileName : STRING(255)
+VAR_INPUT
+	structureType:DINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR
+	tempString:STRING(255);
+	tempString2:STRING(255);
+	tempFileNo:UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF structureType=E_StructureType.AlarmHistory THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'AlarmHistory');
+ELSIF structureType=E_StructureType.ProductionHistory THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
+ELSIF structureType=E_StructureType.ProductionReport THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionReport');
+ELSIF structureType=E_StructureType.SoDuration THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'SoDuration');
+ELSIF structureType=E_StructureType.StopCount THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'StopCount');
+ELSIF structureType=E_StructureType.RegularCheckResults THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'RegularCheckResults');
+END_IF
+
+tempFileNo:=(udiNovRam_BufferIndex) * GVL.FileRingBufferRatio + (udiFile_Index + 1);
+tempString2:=CONCAT(tempString,UDINT_TO_STRING(tempFileNo));
+M_GetFileName:=CONCAT(tempString2,'.dat');]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionHistory" Id="{b278d4fc-53ca-480a-8fab-10f1b6bf22e8}">
+      <Declaration><![CDATA[METHOD M_ProductionHistory : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_AlarmInfo_DB_save;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionHistory;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionReport" Id="{42b7cd43-4f12-4416-9ca6-76406e00b394}">
+      <Declaration><![CDATA[METHOD M_ProductionReport : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionReport], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionReport;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionSummary" Id="{0eb07201-11b4-469c-9445-2612e27f826c}">
+      <Declaration><![CDATA[METHOD M_ProductionSummary : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionSummary;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_RegularCheckResults" Id="{4f391bd5-d0aa-4909-93cc-5379d69be5a3}">
+      <Declaration><![CDATA[METHOD M_RegularCheckResults : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.RegularCheckResults], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.RegularCheckResults;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SoDuration" Id="{34847b3f-fcce-4d1d-ab8f-2e050ac3309f}">
+      <Declaration><![CDATA[METHOD M_SoDuration : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.SoDuration], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.SoDuration;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StopCount" Id="{a1505196-e5cb-459d-bc10-3909af20d9b6}">
+      <Declaration><![CDATA[METHOD M_StopCount : BOOL
+VAR_INPUT
+	udiNovRamIndex:UDINT;
+END_VAR
+VAR_INST
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.StopCount], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    cbLoad    : UDINT;
+	
+	fileName:STRING(255);
+	tempFileIndex:UDINT;
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.StopCount;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,cbReturn=>cbLoad,stHeader=>stHeader);
+
+CASE iStep OF
+	0://NovRam full detect / file full detect
+		
+		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
+		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		THEN
+			//
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRamIndex
+									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									
+			iStep:=1;
+		END_IF
+
+	1://Open File
+		
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=2;
+		
+	2://Wait Done/Add Data
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Add
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+					pReadBuff := 0, cbReadLen:=0 );
+			
+			iStep:=3;
+			
+		END_IF
+	3://Wait Done / Close file /(Check if file Full)
+		IF fbFileRingBuffer.bBusy=FALSE THEN
+						
+			//Check if file full
+			IF NOT fbFileRingBuffer.bError THEN
+				iStep:=4;
+			ELSIF fbFileRingBuffer.bError = TRUE AND nErrID=32768 THEN//full
+				iStep:=11;
+			END_IF
+			
+			//close file
+			fbFileRingBuffer.A_Close();
+			
+		END_IF
+	4://Wait Done(file still has space)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			
+			iStep:=0;
+		END_IF
+	11://Wait Done(file full)
+		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
+			//Lock now file
+			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			
+			//Move to next FileIndex
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			
+			iStep:=0;
+			
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_NovRamToFileRingBuffer">
+      <LineId Id="93" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="109" Count="9" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="70" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_AlarmHistory">
+      <LineId Id="460" Count="0" />
+      <LineId Id="458" Count="1" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="257" Count="1" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="305" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="388" Count="1" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="322" Count="1" />
+      <LineId Id="308" Count="0" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="320" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="124" Count="5" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="194" Count="1" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="136" Count="3" />
+      <LineId Id="231" Count="1" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="251" Count="3" />
+      <LineId Id="144" Count="6" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="314" Count="2" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="423" Count="0" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="317" Count="1" />
+      <LineId Id="247" Count="1" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_GetFileName">
+      <LineId Id="64" Count="15" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionHistory">
+      <LineId Id="136" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="7" Count="2" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="11" Count="68" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionReport">
+      <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionSummary">
+      <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_RegularCheckResults">
+      <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_SoDuration">
+      <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_StopCount">
+      <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

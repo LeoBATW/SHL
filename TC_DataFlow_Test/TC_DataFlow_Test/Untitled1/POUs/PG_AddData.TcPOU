@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PG_AddData" Id="{54f410b2-b83a-4d7a-938e-1ab226b5f3f6}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PG_AddData
+VAR
+	i:UDINT;
+	repeatTimer:TON;
+	
+	
+	AlarmHistoryData_Write:ST_AlarmInfo_DB_save;
+	ProductionHistoryData_Write:ST_Production_History_DB_Test;
+	ProductionReport_Write:ST_OEE_ProductionReport;
+	ProductionSummary_Write:ST_OEE_ProductionSummary;
+	SoDuration_Write:ST_SoDuration;
+	StopCount_Write:ST_StopCount;
+	RegularCheckResults_Write:ST_RegularCheck_Results_DB;
+	
+	
+	writeFailCount:UDINT;
+	writeFailCount2:UDINT;
+	writeFailCount3:UDINT;
+	writeFailCount4:UDINT;
+	writeFailCount5:UDINT;
+	writeFailCount6:UDINT;
+	writeFailCount7:UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+//simulate that Peak Data amount as 500 ms
+repeatTimer(IN:=TRUE,PT:=T#1000MS);
+
+IF repeatTimer.Q THEN
+	
+	repeatTimer(in:=FALSE);
+	
+	//simulate Peak save data amount
+	FOR i:=0 TO GVL.Max_IndexNum-1 DO
+		IF GVL.fbDataToNovRam[i].M_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
+			writeFailCount:=writeFailCount+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_ProductionHistory(addData:=ProductionHistoryData_Write) = FALSE THEN
+			writeFailCount2:=writeFailCount2+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
+			writeFailCount3:=writeFailCount3+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
+			writeFailCount4:=writeFailCount4+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_SoDuration(addData:=SoDuration_Write) = FALSE THEN
+			writeFailCount5:=writeFailCount5+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_StopCount(addData:=StopCount_Write) = FALSE THEN
+			writeFailCount6:=writeFailCount6+1;
+		END_IF
+		IF GVL.fbDataToNovRam[i].M_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
+			writeFailCount7:=writeFailCount7+1;
+		END_IF
+		
+	END_FOR
+	
+END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="PG_AddData">
+      <LineId Id="71" Count="0" />
+      <LineId Id="66" Count="2" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="43" Count="1" />
+      <LineId Id="95" Count="2" />
+      <LineId Id="114" Count="2" />
+      <LineId Id="147" Count="1" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="151" Count="1" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="155" Count="1" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="159" Count="1" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="163" Count="1" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

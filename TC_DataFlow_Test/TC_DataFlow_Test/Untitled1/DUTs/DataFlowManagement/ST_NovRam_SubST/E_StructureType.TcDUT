@@ -6,7 +6,12 @@
 TYPE E_StructureType :
 (
 	AlarmHistory := 0,
-	ProductionHistory := 1
+	ProductionHistory := 1,
+	ProductionReport := 2,
+	ProductionSummary := 3,
+	SoDuration:=4,
+	StopCount:=5,
+	RegularCheckResults:=6
 );
 END_TYPE
 ]]></Declaration>

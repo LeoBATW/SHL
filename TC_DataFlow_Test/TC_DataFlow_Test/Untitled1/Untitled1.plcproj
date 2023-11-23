@@ -17,9 +17,6 @@
     <LibraryReferences>{7f1a8881-802e-4fd1-a704-c4ef4c7f8dcd}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DUTs\DataFlowManagement\ST_Base.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DUTs\DataFlowManagement\ST_NovRam.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -105,22 +102,22 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataConsume\FB_NovRamToFileRingBuffer.TcPOU">
+    <Compile Include="POUs\FB_DataToNovRam.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataConsume\FB_FileRingBufferToDB.TcPOU">
+    <Compile Include="POUs\FB_FileRingBufferToDB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataConsume\PG_Consumer.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\DataProduce\FB_DataToNovRam.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\DataProduce\PG_AlarmHistory.TcPOU">
+    <Compile Include="POUs\FB_NovRamToFileRingBuffer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\PG_AddData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\PG_Consumer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Task_Consumer.TcTTO">
@@ -133,8 +130,6 @@
     <Folder Include="DUTs\DataFlowManagement\ST_NovRam_SubST" />
     <Folder Include="DUTs\PHI" />
     <Folder Include="GVLs" />
-    <Folder Include="POUs\DataProduce" />
-    <Folder Include="POUs\DataConsume" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>

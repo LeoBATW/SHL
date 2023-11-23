@@ -8,7 +8,7 @@
       <Name>MAIN</Name>
     </PouCall>
     <PouCall>
-      <Name>PG_AlarmHistory</Name>
+      <Name>PG_AddData</Name>
     </PouCall>
     <TaskFBGuid>{38072101-7965-4a8a-9574-b7838edd1ac4}</TaskFBGuid>
     <Fb_init>{51cc2c27-5aa0-4eb6-9711-a2bfc66157ec}</Fb_init>

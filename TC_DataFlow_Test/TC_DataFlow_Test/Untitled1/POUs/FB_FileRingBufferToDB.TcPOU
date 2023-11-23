@@ -1,0 +1,1466 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_FileRingBufferToDB" Id="{5407df28-5241-4688-9419-685e8c9548d2}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FileRingBufferToDB
+VAR_INPUT
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+	dataType:DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF dataType = E_StructureType.AlarmHistory THEN
+	M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.ProductionHistory THEN
+	M_ProductionHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.ProductionReport THEN
+	M_ProductionReport(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.ProductionSummary THEN
+	M_ProductionSummary(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.SoDuration THEN
+	M_SoDuration(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.StopCount THEN
+	M_StopCount(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+ELSIF dataType = E_StructureType.RegularCheckResults THEN
+	M_RegularCheckResults(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Folder Name="New" Id="{53f9874f-9eac-4a94-a5cd-264771f7980f}" />
+    <Folder Name="Sub" Id="{2534213c-7e5e-4abf-9411-860d44a5b2d2}" />
+    <Method Name="M_AlarmHistory" Id="{ff77384c-01f1-48bd-a1b3-7abc9b26720b}">
+      <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
+	DataToDB:ST_AlarmInfo_DB_save;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:dint;
+END_VAR
+VAR
+	
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.AlarmHistory;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+
+
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_GetFileName" Id="{4b3fabe7-1e25-46e4-9798-bee9befa9ab6}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_GetFileName : STRING(255)
+VAR_INPUT
+	structureType:DINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR
+	tempString:STRING(255);
+	tempString2:STRING(255);
+	tempFileNo:UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF structureType=E_StructureType.AlarmHistory THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'AlarmHistory');
+ELSIF structureType=E_StructureType.ProductionHistory THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
+ELSIF structureType=E_StructureType.ProductionReport THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionReport');
+ELSIF structureType=E_StructureType.SoDuration THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'SoDuration');
+ELSIF structureType=E_StructureType.StopCount THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'StopCount');
+ELSIF structureType=E_StructureType.RegularCheckResults THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'RegularCheckResults');
+END_IF
+
+tempFileNo:=(udiNovRam_BufferIndex) * GVL.FileRingBufferRatio + (udiFile_Index + 1);
+tempString2:=CONCAT(tempString,UDINT_TO_STRING(tempFileNo));
+M_GetFileName:=CONCAT(tempString2,'.dat');]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionHistory" Id="{8fa7d530-7099-445c-bf55-d19dcfd86a46}">
+      <Declaration><![CDATA[{warning 'add method implementation '}
+METHOD M_ProductionHistory : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_Production_History_DB_Test;
+	DataToDB:ST_Production_History_DB_Test;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionHistory;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionReport" Id="{50ec54d4-867e-4233-ac7e-27f8467d1362}">
+      <Declaration><![CDATA[METHOD M_ProductionReport : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;
+	DataToDB:ST_OEE_ProductionReport;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionReport], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionReport;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionSummary" Id="{cc4bac99-b6fb-4a33-86fa-fb65566bf866}">
+      <Declaration><![CDATA[METHOD M_ProductionSummary : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;
+	DataToDB:ST_OEE_ProductionSummary;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionSummary;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_RegularCheckResults" Id="{c1a33c14-6851-44f5-b745-cb1a1bc9c7c4}">
+      <Declaration><![CDATA[METHOD M_RegularCheckResults : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
+	DataToDB:ST_RegularCheck_Results_DB;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.RegularCheckResults], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.RegularCheckResults;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SoDuration" Id="{56393071-2555-404b-aac1-71b9d39a0087}">
+      <Declaration><![CDATA[METHOD M_SoDuration : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;
+	DataToDB:ST_SoDuration;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.SoDuration;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StopCount" Id="{ce4c351f-2ecd-476b-900a-3eebce8b4087}">
+      <Declaration><![CDATA[METHOD M_StopCount : BOOL
+VAR_INPUT
+	
+	//udiFileNo:UDINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;
+	DataToDB:ST_StopCount;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.StopCount], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+	eStrIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.StopCount;
+
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader);
+				
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Transmit" Id="{3f82a6cf-6425-4cbb-9c67-aa4f71676386}" FolderPath="New\">
+      <Declaration><![CDATA[METHOD M_Transmit : BOOL
+VAR_INPUT
+	eStrIndex:DINT;
+	udiNovRam_BufferIndex:UDINT;
+	udiFile_Index:UDINT;
+END_VAR
+VAR_INST
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
+	DataToDB:ST_AlarmInfo_DB_save;
+	AnalizeIndex:UDINT;//should be kept by NovRam
+	iStep:INT;
+	i:UDINT;
+	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
+                                             sPathName  := '',
+                                             ePath      := PATH_GENERIC,
+                                             nID        := 1,
+                                             //cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
+                                             bOverwrite := FALSE,
+                                             pWriteBuff := 0,
+                                             cbWriteLen := 0,
+                                             pReadBuff  := 0,
+                                             cbReadLen  := 0,
+                                             tTimeout   := T#1S );
+	bBusy:BOOL;
+	bError:BOOL;
+	nErrID:UDINT;
+	stHeader:ST_FileRBufferHead;
+    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
+    //cbLoad    : UDINT;
+	
+	testTimer:TON;
+	fileName: STRING(255);
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+fbFileRingBuffer(sPathName:=fileName
+				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
+				,stHeader=>stHeader
+				,cbBuffer:=gvl.arrFileRingBufferSize[eStrIndex]);
+
+
+CASE iStep OF
+	0://check if file full 
+		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		THEN
+			
+			fileName:=M_GetFileName(structureType:=eStrIndex
+									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+									,udiFile_Index:=udiFile_Index);
+			
+			iStep:=100;
+		END_IF
+	100:// Open file
+		
+		AnalizeIndex:=0;
+		fbFileRingBuffer.A_Open();
+		
+		iStep:=200;
+	200://wait done / read head
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+			
+			iStep:=300;
+		END_IF
+	300://wait done / take data from array
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			iStep:=310;
+		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
+			iStep:=600;
+		END_IF
+	310:// write to DB
+		//=====Method 1=====
+		
+		//write DataToDB to DB
+		iStep:=320;
+		
+		
+		//=====Method 2=====
+		//write to Csv
+		//Write to DB CSV bulk insert to DB
+		//..........
+	320://wait done
+		
+		//simulate DB process time
+		testTimer(IN:=TRUE,PT:=T#100MS);
+		IF testTimer.Q  THEN
+			testTimer(IN:=FALSE);
+			
+			IF TRUE THEN//write OK
+			
+				AnalizeIndex:=AnalizeIndex+1;
+				
+				iStep:=330;
+				
+			ELSE//write failed need to write to log
+				;
+			END_IF
+		END_IF
+		
+		
+	330://Check if all data in array Analized
+		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
+			iStep:=300;//go back
+		ELSE//array data done
+			iStep:=400;//complete this array
+		END_IF
+		
+	400://wait done / remove Head
+	
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		iStep:=500;
+		
+	500://wait done / check if all data got?
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			IF stHeader.nCount > 0 THEN
+				iStep:=100;//Go Back
+			ELSE
+				iStep:=600;//finish
+			END_IF
+		END_IF
+	600://reset file
+	
+		fbFileRingBuffer.A_Reset();
+		
+		iStep:=700;
+		
+	700://wait done / close file
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			fbFileRingBuffer.A_Close();
+			
+			iStep:=800;
+		END_IF
+	800://wait done
+		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
+			
+			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			
+			iStep:=0;
+			
+		END_IF
+		
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_FileRingBufferToDB">
+      <LineId Id="32" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="56" Count="1" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_AlarmHistory">
+      <LineId Id="519" Count="0" />
+      <LineId Id="517" Count="1" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="127" Count="1" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="516" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="162" Count="1" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="384" Count="1" />
+      <LineId Id="169" Count="2" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="87" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="173" Count="1" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="376" Count="1" />
+      <LineId Id="387" Count="0" />
+      <LineId Id="378" Count="0" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="388" Count="1" />
+      <LineId Id="379" Count="0" />
+      <LineId Id="381" Count="1" />
+      <LineId Id="390" Count="0" />
+      <LineId Id="455" Count="0" />
+      <LineId Id="466" Count="1" />
+      <LineId Id="459" Count="1" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="476" Count="0" />
+      <LineId Id="468" Count="7" />
+      <LineId Id="463" Count="0" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="465" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="437" Count="1" />
+      <LineId Id="440" Count="1" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="477" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="81" Count="3" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="375" Count="0" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="211" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_GetFileName">
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="76" Count="1" />
+      <LineId Id="79" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ProductionHistory">
+      <LineId Id="186" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="187" Count="2" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="43" Count="106" />
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ProductionReport">
+      <LineId Id="39" Count="113" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ProductionSummary">
+      <LineId Id="39" Count="113" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_RegularCheckResults">
+      <LineId Id="39" Count="113" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_SoDuration">
+      <LineId Id="39" Count="113" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_StopCount">
+      <LineId Id="39" Count="113" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_Transmit">
+      <LineId Id="153" Count="0" />
+      <LineId Id="41" Count="2" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="44" Count="108" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="ST_Production_History_DB_Test" Id="{734a7360-cf7d-4719-8a64-973399d0e740}">
-    <Declaration><![CDATA[TYPE ST_Production_History_DB_Test EXTENDS ST_Base: // single production data of a station
+    <Declaration><![CDATA[TYPE ST_Production_History_DB_Test: // single production data of a station
 	STRUCT
 		dtStart_time             	: DT ;					// 作業開始時間
 		rDuration               	: REAL ;				// unit: sec    (end_time - start_time)

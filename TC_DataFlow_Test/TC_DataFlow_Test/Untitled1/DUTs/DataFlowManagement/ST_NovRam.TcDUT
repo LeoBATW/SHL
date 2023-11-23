@@ -6,22 +6,21 @@ STRUCT
 	
 	//Status
 	//NovRam_Status:ST_NovRam_Status;
-	arrNovRam_Status:ARRAY[0..1] OF ST_NovRam_Status;
+	arrNovRam_Status:ARRAY[0..6] OF ST_NovRam_Status;
 	//FileRingBuffer_Status:ST_FileRingBuffer_Status;
-	arrFileRingBuffer_Status:ARRAY[0..1] OF ST_FileRingBuffer_Status;
+	arrFileRingBuffer_Status:ARRAY[0..6] OF ST_FileRingBuffer_Status;
 	
 	
 	
 	//DATA
 	AlarmHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
 	ProductionHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_Production_History_DB_Test;
-	(*
-	ProductionReport:ARRAY [0..2] OF ST_OEE_ProductionReport;
-	ProductionSummary:ARRAY [0..2] OF ST_OEE_ProductionSummary;
-	SoDuration:ARRAY [0..2] OF ST_SoDuration;
-	StopCount:ARRAY [0..2] OF ST_StopCount;
-	RegularCheckResults:ARRAY [0..2] OF ST_RegularCheck_Results;
-	*)
+	ProductionReport:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;
+	ProductionSummary:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;
+	SoDuration:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;
+	StopCount:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;
+	RegularCheckResults:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
+	
 
 END_STRUCT
 END_TYPE

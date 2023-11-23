@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_DataToNovRam" Id="{76f3141b-7a21-4959-afa9-90d9594b687d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DataToNovRam
+VAR_INPUT
+	bExecute:BOOL;
+	
+	savedData:ST_AlarmInfo_DB_save;
+END_VAR
+VAR_OUTPUT
+	bResult:BOOL;
+END_VAR
+VAR
+	
+END_VAR
+VAR_IN_OUT
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_AlarmHistory" Id="{aac47326-eba1-4863-89c8-9d8cb955d250}">
+      <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
+VAR_INPUT
+	addData:ST_AlarmInfo_DB_save;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.AlarmHistory;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.AlarmHistory[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_AlarmHistory:=TRUE;
+ELSE
+	M_AlarmHistory:=FALSE;
+END_IF
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionHistory" Id="{d7343e0a-38fb-4763-8037-34bbcaf9758f}">
+      <Declaration><![CDATA[METHOD M_ProductionHistory : BOOL
+VAR_INPUT
+	addData:ST_Production_History_DB_Test;
+END_VAR
+VAR 
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionHistory;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.ProductionHistory[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_ProductionHistory:=TRUE;
+ELSE
+	M_ProductionHistory:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionReport" Id="{2687dc60-389f-4ef4-84c5-501218c7098f}">
+      <Declaration><![CDATA[METHOD M_ProductionReport : BOOL
+VAR_INPUT
+	addData:ST_OEE_ProductionReport;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionReport;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.ProductionReport[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_ProductionReport:=TRUE;
+ELSE
+	M_ProductionReport:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionSummary" Id="{a4b2b19b-80fa-4785-b664-d0b380caa519}">
+      <Declaration><![CDATA[METHOD M_ProductionSummary : BOOL
+VAR_INPUT
+	addData:ST_OEE_ProductionSummary;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.ProductionSummary;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.ProductionSummary[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_ProductionSummary:=TRUE;
+ELSE
+	M_ProductionSummary:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_RegularCheckResults" Id="{9aa594fd-a6f0-4775-b77b-92a3336da06a}">
+      <Declaration><![CDATA[METHOD M_RegularCheckResults : BOOL
+VAR_INPUT
+	addData:ST_RegularCheck_Results_DB;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.RegularCheckResults;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.RegularCheckResults[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_RegularCheckResults:=TRUE;
+ELSE
+	M_RegularCheckResults:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SoDuration" Id="{d9f5c0bb-6506-473d-93d1-a17c9d6d32f6}">
+      <Declaration><![CDATA[METHOD M_SoDuration : BOOL
+VAR_INPUT
+	addData:ST_SoDuration;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.SoDuration;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.SoDuration[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_SoDuration:=TRUE;
+ELSE
+	M_SoDuration:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StopCount" Id="{60ce841c-0d92-4ca8-9d69-3454400f79f4}">
+      <Declaration><![CDATA[METHOD M_StopCount : BOOL
+VAR_INPUT
+	addData:ST_StopCount;
+END_VAR
+VAR
+	eStrIndex:DINT;
+	udiNowRowIndex:DINT;
+	udiWritenIndex:DINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Config
+eStrIndex:=E_StructureType.StopCount;
+udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
+udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+
+IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
+	
+	//write data
+	GVL.NovRamData.StopCount[udiNowRowIndex][udiWritenIndex]:=addData;
+	
+	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
+	
+	//Check if Full
+	IF GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+		//Set Row Lock
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
+		
+		//Reset Row and writenIndex
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNowRowIndex+1)MOD GVL.NovRamBufferRatio;
+		GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+	END_IF
+	
+	M_StopCount:=TRUE;
+ELSE
+	M_StopCount:=FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_DataToNovRam">
+      <LineId Id="12" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_AlarmHistory">
+      <LineId Id="138" Count="0" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="107" Count="22" />
+      <LineId Id="69" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ProductionHistory">
+      <LineId Id="38" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="7" Count="20" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ProductionReport">
+      <LineId Id="39" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ProductionSummary">
+      <LineId Id="13" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_RegularCheckResults">
+      <LineId Id="13" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_SoDuration">
+      <LineId Id="13" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_StopCount">
+      <LineId Id="13" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
