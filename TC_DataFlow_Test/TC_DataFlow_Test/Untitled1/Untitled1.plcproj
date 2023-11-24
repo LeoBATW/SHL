@@ -117,7 +117,7 @@
     <Compile Include="POUs\PG_AddData.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\PG_Consumer.TcPOU">
+    <Compile Include="POUs\PG_SaveData.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Task_Consumer.TcTTO">

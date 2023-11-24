@@ -5,7 +5,7 @@
     <CycleTime>1000</CycleTime>
     <Priority>1</Priority>
     <PouCall>
-      <Name>PG_Consumer</Name>
+      <Name>PG_SaveData</Name>
     </PouCall>
     <TaskFBGuid>{9dc3161f-c9f8-4977-a23e-4766da1baff7}</TaskFBGuid>
     <Fb_init>{c2f37ed6-5da7-4287-98a1-aa66a7517425}</Fb_init>

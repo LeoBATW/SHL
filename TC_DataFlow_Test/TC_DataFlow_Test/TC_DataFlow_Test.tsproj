@@ -28,8 +28,8 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
-			<BitSize>192</BitSize>
+			<Name GUID="{000556FA-D236-FC6D-6F76-0F75E1ACE0A5}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
+			<BitSize>576</BitSize>
 			<SubItem>
 				<Name>bFileFull</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
@@ -39,10 +39,10 @@
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>10</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[9]]></Comment>
-				<BitSize>72</BitSize>
+				<BitSize>240</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -50,11 +50,11 @@
 				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>10</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[3]]></Comment>
-				<BitSize>96</BitSize>
-				<BitOffs>96</BitOffs>
+				<BitSize>320</BitSize>
+				<BitOffs>256</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -602,8 +602,8 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{826DD6D5-2AF6-AEDA-C13B-A4F52D4CAF8B}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>3178688</BitSize>
+			<Name GUID="{076E51B3-A56F-8376-1E93-6298D2C2205C}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>3181376</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
 				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
@@ -618,13 +618,13 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>arrFileRingBuffer_Status</Name>
-				<Type GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}">ST_FileRingBuffer_Status</Type>
+				<Type GUID="{000556FA-D236-FC6D-6F76-0F75E1ACE0A5}">ST_FileRingBuffer_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[FileRingBuffer_Status:ST_FileRingBuffer_Status;]]></Comment>
-				<BitSize>1344</BitSize>
+				<BitSize>4032</BitSize>
 				<BitOffs>672</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -640,7 +640,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 				</ArrayInfo>
 				<Comment><![CDATA[DATA]]></Comment>
 				<BitSize>489600</BitSize>
-				<BitOffs>2048</BitOffs>
+				<BitOffs>4736</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionHistory</Name>
@@ -654,7 +654,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>77760</BitSize>
-				<BitOffs>491648</BitOffs>
+				<BitOffs>494336</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionReport</Name>
@@ -668,7 +668,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>123840</BitSize>
-				<BitOffs>569408</BitOffs>
+				<BitOffs>572096</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionSummary</Name>
@@ -682,7 +682,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>106560</BitSize>
-				<BitOffs>693248</BitOffs>
+				<BitOffs>695936</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>SoDuration</Name>
@@ -696,7 +696,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>1512000</BitSize>
-				<BitOffs>799808</BitOffs>
+				<BitOffs>802496</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>StopCount</Name>
@@ -710,7 +710,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>455040</BitSize>
-				<BitOffs>2311808</BitOffs>
+				<BitOffs>2314496</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
@@ -724,18 +724,18 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>411840</BitSize>
-				<BitOffs>2766848</BitOffs>
+				<BitOffs>2769536</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" Target64Bit="true" ShowHideConfigurations="#x106">
+	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" TargetNetId="169.254.64.10.1.1" Target64Bit="true" ShowHideConfigurations="#x106">
 		<System>
 			<Settings MaxCpus="20" NonWinCpus="4">
 				<Cpu/>
 				<Cpu CpuId="1"/>
 			</Settings>
 			<Tasks>
-				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
+				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
 				<Task Id="4" Priority="1" CycleTime="10000" AmsPort="351" Affinity="#x00000001" AdtTasks="true">
@@ -752,7 +752,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.NovRamData</Name>
-							<Type GUID="{826DD6D5-2AF6-AEDA-C13B-A4F52D4CAF8B}">ST_NovRam</Type>
+							<Type GUID="{076E51B3-A56F-8376-1E93-6298D2C2205C}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>
@@ -773,7 +773,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 								<OTCID>#x02010030</OTCID>
 							</ManualConfig>
 							<Priority>20</Priority>
-							<CycleTime>10000000</CycleTime>
+							<CycleTime>1000000</CycleTime>
 						</Context>
 					</Contexts>
 					<TaskPouOids>
