@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_AlarmHistory_DB" Id="{c9a34eef-7471-4015-8e90-dbc51a3dfe55}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_AlarmHistory_DB
+VAR_INPUT
+	udiDBID : UDINT := 1 ;
+END_VAR
+
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+
+VAR
+		
+	//FBs
+	FB_PLCDBCmdEvt_insertAlarmHistory 	: FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	// Var
+	stPara_all_alarm_history 			: ARRAY[0..9] OF ST_ExpParameter ;
+	iErrStep :INT := 9000;
+	iAHStep 							: INT ;
+
+	//SQL Command
+	sCmd_insertAlarmHistory 			: STRING(1000) := '
+		INSERT INTO 
+			[dbo].[all_alarm_history](	
+										[Time_ms], 
+										[MsgProc], 
+										[StateAfter], 
+										[MsgClass], 
+										[MsgNumber], 
+										[Var1], 
+										[Var2], 
+										[Var3], 
+										[Var4], 
+										[Var5], 
+										[Var6], 
+										[Var7], 
+										[Var8], 
+										[TimeString], 
+										[MsgText], 
+										[PLC], 
+										[equipment], 
+										[faam_id]) 
+		VALUES(
+										{lr_Time_ms}, 
+										{i_MsgProc}, 
+										{i_StateAfter}, 
+										{i_MsgClass}, 
+										{di_MsgNumber}, 
+										$'{wstr_Var1}$', 
+										$'{wstr_Var2}$', 
+										$'{wstr_Var3}$', 
+										$'{wstr_Var4}$', 
+										$'{wstr_Var5}$', 
+										$'{wstr_Var6}$', 
+										$'{wstr_Var7}$', 
+										$'{wstr_Var8}$', 
+										$'{str_TimeString}$', 
+										$'{wstr_MsgText}$', 
+										$'{str_PLC}$', 
+										$'{wstr_equipment}$', 
+										$'{str_faam_id}$')' ;	
+
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;
+	
+	
+END_VAR
+
+
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{af1cc0c0-ab6b-4e1e-997d-b4e65ca957d9}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{f74595fa-461b-4a4f-9f38-7dd4e4517d54}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iAHStep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{afe4422a-547e-4c87-838a-1c19fa570263}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{846595b1-4633-4631-b8ee-3ab33e6a5f5d}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{2294d69f-f500-44eb-b048-3ec544c749fa}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{c7c39799-51bd-4b49-af8f-2ca7026518fc}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stPara_all_alarm_history[0].sParaName := 'lr_Time_ms' ;
+stPara_all_alarm_history[0].eParaType := E_ExpParameterType.Double64 ;
+stPara_all_alarm_history[0].nParaSize := SIZEOF(ST_AlarmInfo_DB.lrTime_ms) ;
+stPara_all_alarm_history[1].sParaName := 'i_MsgProc' ;
+stPara_all_alarm_history[1].eParaType := E_ExpParameterType.Int16 ;
+stPara_all_alarm_history[1].nParaSize := SIZEOF(ST_AlarmInfo_DB.iMsgProc) ;
+stPara_all_alarm_history[2].sParaName := 'i_StateAfter' ;
+stPara_all_alarm_history[2].eParaType := E_ExpParameterType.Int16 ;
+stPara_all_alarm_history[2].nParaSize := SIZEOF(ST_AlarmInfo_DB.iStateAfter) ;
+stPara_all_alarm_history[3].sParaName := 'i_MsgClass' ;
+stPara_all_alarm_history[3].eParaType := E_ExpParameterType.Int16 ;
+stPara_all_alarm_history[3].nParaSize := SIZEOF(ST_AlarmInfo_DB.iMsgClass) ;
+stPara_all_alarm_history[4].sParaName := 'di_MsgNumber' ;
+stPara_all_alarm_history[4].eParaType := E_ExpParameterType.Int32 ;
+stPara_all_alarm_history[4].nParaSize := SIZEOF(ST_AlarmInfo_DB.diMsgNumber) ;
+(*
+stPara_all_alarm_history[5].sParaName := 'wstr_Var1' ;
+stPara_all_alarm_history[5].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[5].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar1) ;
+stPara_all_alarm_history[6].sParaName := 'wstr_Var2' ;
+stPara_all_alarm_history[6].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[6].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar2) ;
+stPara_all_alarm_history[7].sParaName := 'wstr_Var3' ;
+stPara_all_alarm_history[7].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[7].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar3) ;
+stPara_all_alarm_history[8].sParaName := 'wstr_Var4' ;
+stPara_all_alarm_history[8].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[8].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar4) ;
+stPara_all_alarm_history[9].sParaName := 'wstr_Var5' ;
+stPara_all_alarm_history[9].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[9].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar5) ;
+stPara_all_alarm_history[10].sParaName := 'wstr_Var6' ;
+stPara_all_alarm_history[10].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[10].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar6) ;
+stPara_all_alarm_history[11].sParaName := 'wstr_Var7' ;
+stPara_all_alarm_history[11].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[11].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar7) ;
+stPara_all_alarm_history[12].sParaName := 'wstr_Var8' ;
+stPara_all_alarm_history[12].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[12].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar8) ;
+stPara_all_alarm_history[11].sParaName := 'wstr_Var7' ;
+stPara_all_alarm_history[11].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[11].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar7) ;
+stPara_all_alarm_history[12].sParaName := 'wstr_Var8' ;
+stPara_all_alarm_history[12].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[12].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar8) ;
+*)
+stPara_all_alarm_history[5].sParaName := 'str_TimeString' ;
+stPara_all_alarm_history[5].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[5].nParaSize := SIZEOF(ST_AlarmInfo_DB.sTimeString) ;
+stPara_all_alarm_history[6].sParaName := 'wstr_MsgText' ;
+stPara_all_alarm_history[6].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[6].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsMsgText) ;
+stPara_all_alarm_history[7].sParaName := 'str_PLC' ;
+stPara_all_alarm_history[7].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[7].nParaSize := SIZEOF(ST_AlarmInfo_DB.sPLC) ;
+stPara_all_alarm_history[8].sParaName := 'wstr_equipment' ;
+stPara_all_alarm_history[8].eParaType := E_ExpParameterType.WSTRING_ ;  
+stPara_all_alarm_history[8].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsEquipment) ;             
+stPara_all_alarm_history[9].sParaName := 'str_faam_id' ;
+stPara_all_alarm_history[9].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[9].nParaSize := SIZEOF(ST_AlarmInfo_DB.sFaam_id) ; 
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{6ee696a8-6ea8-4282-9dfa-19362b4099ec}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stAlarmInfo : ST_AlarmInfo_DB_save ;//DB_TEST
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iAHStep OF
+	0: 
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		
+		tStartTime := TIME();
+		M_SetBusy();
+		iAHStep := iAHStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt_insertAlarmHistory.Execute
+			(
+				hDBID        := udiDBID ,
+			 	pExpression  := ADR(sCmd_insertAlarmHistory) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_insertAlarmHistory) ,
+			 	pData        := ADR(stAlarmInfo) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stAlarmInfo) ,
+			 	pParameter   := ADR(stPara_all_alarm_history) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_all_alarm_history) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_insertAlarmHistory.bError THEN // 異常
+				ITF_TcMessage := FB_PLCDBCmdEvt_insertAlarmHistory.ipTcResult;
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();		
+				iAHStep := iErrStep + 100;
+			ELSE // 成功寫入
+				M_Upload := TRUE;
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iAHStep := 0;
+			END_IF
+		END_IF
+
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_AlarmHistory_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_Reset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_SetSQLCmdPara">
+      <LineId Id="173" Count="14" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="188" Count="29" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="218" Count="14" />
+      <LineId Id="63" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AlarmHistory_DB.M_Upload">
+      <LineId Id="682" Count="4" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="687" Count="20" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="729" Count="1" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="708" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="717" Count="2" />
+      <LineId Id="620" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_OEE_ProductionSummary_DB" Id="{fb743128-aa29-430f-b3cf-8dfbd4197654}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_OEE_ProductionSummary_DB
+VAR_INPUT
+	udiDBID : UDINT := 1 ;
+END_VAR
+
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+
+VAR
+	// FBs
+	FB_PLCDBCmdEvt_production_summary : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	// Vars
+	stPara_production_summary 	: ARRAY[0..5] OF ST_ExpParameter ;
+	iStep						: INT;
+	iErrStep					: INT := 9000;
+	
+	// SQL Command
+	sCmd_production_summary : STRING(1000) := '
+		INSERT INTO [dbo].[production_summary] 
+						([equipment], [summary_type], [summary_value], [faam_id], [so_number], [so_id]) 
+		VALUES 			($'{wstr_equipment}$', $'{wstr_summary_type}$', {di_summary_value}, $'{str_faam_id}$', $'{str_so_number}$', {di_so_id}) ' ;
+		
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{ad32c62b-e7b2-40ed-b320-df10543d9b29}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{cefb0273-4a17-436f-b9f1-ca4a73ad35ff}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iStep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{4bbfe07d-c4a0-4f7e-bdd2-1d6551cd3fa1}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{b553474f-38dd-436f-9fbb-f99d8b15ab3e}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{8d69ec2f-e344-49fd-97ab-0c3b240c0bcb}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{6f3bbf76-ff9a-4b9e-86b6-9d0f6bf931e4}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stPara_production_summary[0].sParaName := 'wstr_equipment' ;
+stPara_production_summary[0].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_production_summary[0].nParaSize := SIZEOF(ST_OEE_ProductionSummary.wsEquipment);
+stPara_production_summary[1].sParaName := 'wstr_summary_type' ;
+stPara_production_summary[1].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_production_summary[1].nParaSize := SIZEOF(ST_OEE_ProductionSummary.wsSummary_type);
+stPara_production_summary[2].sParaName := 'di_summary_value' ;
+stPara_production_summary[2].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_summary[2].nParaSize := SIZEOF(ST_OEE_ProductionSummary.diSummary_value);
+stPara_production_summary[3].sParaName := 'str_faam_id' ;
+stPara_production_summary[3].eParaType := E_ExpParameterType.STRING_ ;
+stPara_production_summary[3].nParaSize := SIZEOF(ST_OEE_ProductionSummary.sFaam_id);
+stPara_production_summary[4].sParaName := 'str_so_number' ;
+stPara_production_summary[4].eParaType := E_ExpParameterType.STRING_ ;
+stPara_production_summary[4].nParaSize := SIZEOF(ST_OEE_ProductionSummary.sSo_number);
+stPara_production_summary[5].sParaName := 'di_so_id' ;
+stPara_production_summary[5].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_summary[5].nParaSize := SIZEOF(ST_OEE_ProductionSummary.diSo_id);
+M_SetSQLCmdPara := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{0c5ab6e1-c437-451d-b180-404bbf96bde6}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stOEEProductionSummary : ST_OEE_ProductionSummary ;
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iStep OF
+	0: 
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		
+		tStartTime := TIME();
+		M_SetBusy();
+		iStep := iStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt_production_summary.Execute
+			(
+				hDBID        := udiDBID ,
+			 	pExpression  := ADR(sCmd_production_summary) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_production_summary) ,
+			 	pData        := ADR(stOEEProductionSummary) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stOEEProductionSummary) ,
+			 	pParameter   := ADR(stPara_production_summary) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_production_summary) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_production_summary.bError THEN // 異常
+				ITF_TcMessage := FB_PLCDBCmdEvt_production_summary.ipTcResult;
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();		
+				iStep := iErrStep + 100;
+			ELSE // 成功寫入
+				M_Upload := TRUE;
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iStep := 0;
+			END_IF
+		END_IF
+
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_OEE_ProductionSummary_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_Reset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_SetSQLCmdPara">
+      <LineId Id="203" Count="16" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="202" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionSummary_DB.M_Upload">
+      <LineId Id="682" Count="4" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="687" Count="20" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="729" Count="1" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="708" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="717" Count="2" />
+      <LineId Id="620" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

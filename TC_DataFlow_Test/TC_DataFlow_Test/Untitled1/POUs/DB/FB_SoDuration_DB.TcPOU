@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_SoDuration_DB" Id="{efa6f031-8e8e-42dc-8111-9c8ae84cc81a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_SoDuration_DB
+VAR_INPUT
+	udiDBID : UDINT := 1 ;
+END_VAR
+
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+
+VAR
+	// FBs
+	FB_PLCDBCmdEvt_so_duration : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	// Vars
+	stPara_so_duration 	: ARRAY[0..9] OF ST_ExpParameter ;
+	iStep				: INT;
+	iErrStep			: INT := 9000;
+	
+	// SQL Command
+	
+	(*
+	sCmd_so_duration : STRING(1000) := '
+		INSERT INTO [dbo].[so_duration] 
+					([batch_start_time], [batch_end_time], [normal_complition], [batch_end_reason], [batch_end_reason_description], [employee_name_start_user], [employee_name_end_user], [so_number], [faam_id], [so_id]) 
+		VALUES 		({dt_batch_start_time}, {dt_batch_end_time}, {b_normal_complition}, $'{wstr_batch_end_reason}$', $'{wstr_batch_end_reason_description}$', $'{wstr_employee_name_start_user}$', $'{wstr_employee_name_end_user}$', $'{str_so_number}$', $'{str_faam_id}$', {di_so_id}) ' ;
+	*)
+	
+	
+	sCmd_so_duration : STRING(1000) := '
+		INSERT INTO [dbo].[so_duration] 
+					([batch_start_time], [batch_end_time], [batch_end_reason], [batch_end_reason_description], [employee_name_start_user], [employee_name_end_user], [so_number], [faam_id], [so_id], [normal_complition]) 
+		VALUES 		({dt_batch_start_time}, {dt_batch_end_time}, $'{wstr_batch_end_reason}$', $'{wstr_batch_end_reason_description}$', $'{wstr_employee_name_start_user}$', $'{wstr_employee_name_end_user}$', $'{str_so_number}$', $'{str_faam_id}$', {di_so_id}, {b_normal_complition}) ' ;
+	
+	
+	
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{1d07091d-e126-4afd-9958-d1fd3fa02c83}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{011604a9-1da2-4439-a5e4-f0066cbba774}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iStep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{b9f85a6d-c8c3-4094-bbc5-d4015aad6fd6}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{b8d99cb6-b603-4a4b-96d2-b0fda4238352}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{81997820-cee2-41ef-8510-54d265e92cb1}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{79546262-bc42-4529-aa7f-6b91ada57e13}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+stPara_so_duration[0].sParaName := 'dt_batch_start_time' ;
+stPara_so_duration[0].eParaType := E_ExpParameterType.DateTime ;
+stPara_so_duration[0].nParaSize := SIZEOF(ST_SoDuration.dtBatch_start_time) ;
+stPara_so_duration[1].sParaName := 'dt_batch_end_time' ;
+stPara_so_duration[1].eParaType := E_ExpParameterType.DateTime ;
+stPara_so_duration[1].nParaSize := SIZEOF(ST_SoDuration.dtBatch_end_time) ;
+stPara_so_duration[2].sParaName := 'b_normal_complition' ;
+stPara_so_duration[2].eParaType := E_ExpParameterType.Boolean ;
+stPara_so_duration[2].nParaSize := SIZEOF(ST_SoDuration.bNormal_complition) ;
+stPara_so_duration[3].sParaName := 'wstr_batch_end_reason' ;
+stPara_so_duration[3].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[3].nParaSize := SIZEOF(ST_SoDuration.wsBatch_end_reason) ;
+stPara_so_duration[4].sParaName := 'wstr_batch_end_reason_description' ;
+stPara_so_duration[4].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[4].nParaSize := SIZEOF(ST_SoDuration.wsBatch_end_reason_description) ;
+stPara_so_duration[5].sParaName := 'wstr_employee_name_start_user' ;
+stPara_so_duration[5].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[5].nParaSize := SIZEOF(ST_SoDuration.wsEmployee_name_start_user) ;
+stPara_so_duration[6].sParaName := 'wstr_employee_name_end_user' ;
+stPara_so_duration[6].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[6].nParaSize := SIZEOF(ST_SoDuration.wsEmployee_name_end_user) ;
+stPara_so_duration[7].sParaName := 'str_so_number' ;
+stPara_so_duration[7].eParaType := E_ExpParameterType.STRING_ ;
+stPara_so_duration[7].nParaSize := SIZEOF(ST_SoDuration.sSo_number) ;
+stPara_so_duration[8].sParaName := 'str_faam_id' ;
+stPara_so_duration[8].eParaType := E_ExpParameterType.STRING_ ;
+stPara_so_duration[8].nParaSize := SIZEOF(ST_SoDuration.sFaam_id) ;
+stPara_so_duration[9].sParaName := 'di_so_id' ;
+stPara_so_duration[9].eParaType := E_ExpParameterType.Int32 ;
+stPara_so_duration[9].nParaSize := SIZEOF(ST_SoDuration.diSo_id) ;
+*)
+
+
+stPara_so_duration[0].sParaName := 'dt_batch_start_time' ;
+stPara_so_duration[0].eParaType := E_ExpParameterType.DateTime ;
+stPara_so_duration[0].nParaSize := SIZEOF(ST_SoDuration.dtBatch_start_time) ;
+stPara_so_duration[1].sParaName := 'dt_batch_end_time' ;
+stPara_so_duration[1].eParaType := E_ExpParameterType.DateTime ;
+stPara_so_duration[1].nParaSize := SIZEOF(ST_SoDuration.dtBatch_end_time) ;
+stPara_so_duration[2].sParaName := 'wstr_batch_end_reason' ;
+stPara_so_duration[2].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[2].nParaSize := SIZEOF(ST_SoDuration.wsBatch_end_reason) ;
+stPara_so_duration[3].sParaName := 'wstr_batch_end_reason_description' ;
+stPara_so_duration[3].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[3].nParaSize := SIZEOF(ST_SoDuration.wsBatch_end_reason_description) ;
+stPara_so_duration[4].sParaName := 'wstr_employee_name_start_user' ;
+stPara_so_duration[4].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[4].nParaSize := SIZEOF(ST_SoDuration.wsEmployee_name_start_user) ;
+stPara_so_duration[5].sParaName := 'wstr_employee_name_end_user' ;
+stPara_so_duration[5].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_so_duration[5].nParaSize := SIZEOF(ST_SoDuration.wsEmployee_name_end_user) ;
+stPara_so_duration[6].sParaName := 'str_so_number' ;
+stPara_so_duration[6].eParaType := E_ExpParameterType.STRING_ ;
+stPara_so_duration[6].nParaSize := SIZEOF(ST_SoDuration.sSo_number) ;
+stPara_so_duration[7].sParaName := 'str_faam_id' ;
+stPara_so_duration[7].eParaType := E_ExpParameterType.STRING_ ;
+stPara_so_duration[7].nParaSize := SIZEOF(ST_SoDuration.sFaam_id) ;
+stPara_so_duration[8].sParaName := 'di_so_id' ;
+stPara_so_duration[8].eParaType := E_ExpParameterType.Int32 ;
+stPara_so_duration[8].nParaSize := SIZEOF(ST_SoDuration.diSo_id) ;
+stPara_so_duration[9].sParaName := 'b_normal_complition' ;
+stPara_so_duration[9].eParaType := E_ExpParameterType.Boolean ;
+stPara_so_duration[9].nParaSize := SIZEOF(ST_SoDuration.bNormal_complition) ;
+
+
+M_SetSQLCmdPara := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{8b6a5a33-ceb5-4b05-9ca7-fa1c412aae8a}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stSoDuration : ST_SoDuration ;
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iStep OF
+	0: 
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		
+		tStartTime := TIME();
+		M_SetBusy();
+		iStep := iStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt_so_duration.Execute
+			(
+				hDBID        := udiDBID ,
+			 	pExpression  := ADR(sCmd_so_duration) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_so_duration) ,
+			 	pData        := ADR(stSoDuration) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stSoDuration) ,
+			 	pParameter   := ADR(stPara_so_duration) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_so_duration) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_so_duration.bError THEN // 異常
+				ITF_TcMessage := FB_PLCDBCmdEvt_so_duration.ipTcResult;
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();		
+				iStep := iErrStep + 100;
+			ELSE // 成功寫入
+				M_Upload := TRUE;
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iStep := 0;
+			END_IF
+		END_IF
+
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_SoDuration_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_Reset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_SetSQLCmdPara">
+      <LineId Id="213" Count="0" />
+      <LineId Id="173" Count="28" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="219" Count="5" />
+      <LineId Id="228" Count="19" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="249" Count="1" />
+      <LineId Id="217" Count="1" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="202" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_SoDuration_DB.M_Upload">
+      <LineId Id="682" Count="4" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="687" Count="20" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="729" Count="1" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="708" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="717" Count="2" />
+      <LineId Id="620" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

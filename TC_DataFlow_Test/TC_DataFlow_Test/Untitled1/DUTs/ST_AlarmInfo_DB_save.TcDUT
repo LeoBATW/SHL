@@ -4,6 +4,7 @@
     <Declaration><![CDATA[// X64 size: 680 byte
 TYPE ST_AlarmInfo_DB_save:
 STRUCT
+	(*
 	lrTime_ms    	: LREAL ;		
 	siMsgProc    	: SINT ;			// 未明 先填1
 	siStateAfter 	: SINT ;			// 1: Error trigger  0: reset
@@ -22,7 +23,17 @@ STRUCT
 	sPLC        	: STRING(50); 	// Data Format: 'CoreSys' 
 	wsEquipment  	: WSTRING(25);
 	sFaam_id    	: STRING(20);
-	
+	*)
+	lrTime_ms    	: LREAL ;		
+	iMsgProc    	: INT ;			// 未明 先填1
+	iStateAfter 	: INT ;			// 1: Error trigger  0: reset
+	iMsgClass   	: INT ;			// 1: error 2: warning 3: msg
+	diMsgNumber  	: DINT ;		// MsgCode等同於ErrorId
+	sTimeString 	: STRING(25); 	// Data Format: '2023-08-15 15:11:14'  		// SQL Database為char type 26bytes 
+	wsMsgText    	: WSTRING(255); // 文字訊息(顯示在HMI給使用者看的訊息)
+	sPLC        	: STRING(255); 	// Data Format: 'CoreSys' 
+	wsEquipment  	: WSTRING(25);
+	sFaam_id    	: STRING(20);
 END_STRUCT
 END_TYPE]]></Declaration>
   </DUT>

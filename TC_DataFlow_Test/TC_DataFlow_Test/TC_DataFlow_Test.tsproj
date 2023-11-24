@@ -58,75 +58,95 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}" AutoDeleteType="true">ST_AlarmInfo_DB_save</Name>
+			<Name GUID="{66ACB3D4-4616-F0B2-B7C7-17A57F31ACBE}" AutoDeleteType="true">ST_AlarmInfo_DB_save</Name>
 			<Comment><![CDATA[ X64 size: 680 byte]]></Comment>
-			<BitSize>5440</BitSize>
+			<BitSize>7104</BitSize>
 			<SubItem>
 				<Name>lrTime_ms</Name>
 				<Type GUID="{18071995-0000-0000-0000-00000000000E}">LREAL</Type>
+				<Comment><![CDATA[
+	lrTime_ms    	: LREAL ;		
+	siMsgProc    	: SINT ;			// 未明 先填1
+	siStateAfter 	: SINT ;			// 1: Error trigger  0: reset
+	siMsgClass   	: SINT ;			// 1: error 2: warning 3: msg
+	diMsgNumber  	: DINT ;		// MsgCode等同於ErrorId
+	//wsVar1			: WSTRING(255);	// 備註1(可不填)
+	//wsVar2			: WSTRING(255);	// 備註2(可不填)
+	//wsVar3			: WSTRING(255);	// 備註3(可不填)
+	//wsVar4			: WSTRING(255);	// 備註4(可不填)
+	//wsVar5			: WSTRING(255);	// 備註5(可不填)
+	//wsVar6			: WSTRING(255);	// 備註6(可不填)
+	//wsVar7			: WSTRING(255);	// 備註7(可不填)
+	//wsVar8			: WSTRING(255);	// 備註8(可不填)
+	sTimeString 	: STRING(25); 	// Data Format: '2023-08-15 15:11:14'  		// SQL Database為char type 26bytes 
+	wsMsgText    	: WSTRING(255); // 文字訊息(顯示在HMI給使用者看的訊息)
+	sPLC        	: STRING(50); 	// Data Format: 'CoreSys' 
+	wsEquipment  	: WSTRING(25);
+	sFaam_id    	: STRING(20);
+	]]></Comment>
 				<BitSize>64</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>siMsgProc</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Name>iMsgProc</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000006}">INT</Type>
 				<Comment><![CDATA[ 未明 先填1]]></Comment>
-				<BitSize>8</BitSize>
+				<BitSize>16</BitSize>
 				<BitOffs>64</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>siStateAfter</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Name>iStateAfter</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000006}">INT</Type>
 				<Comment><![CDATA[ 1: Error trigger  0: reset]]></Comment>
-				<BitSize>8</BitSize>
-				<BitOffs>72</BitOffs>
+				<BitSize>16</BitSize>
+				<BitOffs>80</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>siMsgClass</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000003}">SINT</Type>
+				<Name>iMsgClass</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000006}">INT</Type>
 				<Comment><![CDATA[ 1: error 2: warning 3: msg]]></Comment>
-				<BitSize>8</BitSize>
-				<BitOffs>80</BitOffs>
+				<BitSize>16</BitSize>
+				<BitOffs>96</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>diMsgNumber</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<Comment><![CDATA[ MsgCode等同於ErrorId]]></Comment>
 				<BitSize>32</BitSize>
-				<BitOffs>96</BitOffs>
+				<BitOffs>128</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sTimeString</Name>
 				<Type GUID="{18071995-0000-0000-0000-000100000019}">STRING(25)</Type>
 				<Comment><![CDATA[ Data Format: '2023-08-15 15:11:14'  		// SQL Database為char type 26bytes ]]></Comment>
 				<BitSize>208</BitSize>
-				<BitOffs>128</BitOffs>
+				<BitOffs>160</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>wsMsgText</Name>
 				<Type GUID="{18071995-0000-0000-0000-0002000000FF}">WSTRING(255)</Type>
 				<Comment><![CDATA[ 文字訊息(顯示在HMI給使用者看的訊息)]]></Comment>
 				<BitSize>4096</BitSize>
-				<BitOffs>336</BitOffs>
+				<BitOffs>368</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sPLC</Name>
-				<Type GUID="{18071995-0000-0000-0000-000100000032}">STRING(50)</Type>
+				<Type GUID="{18071995-0000-0000-0000-0001000000FF}">STRING(255)</Type>
 				<Comment><![CDATA[ Data Format: 'CoreSys' ]]></Comment>
-				<BitSize>408</BitSize>
-				<BitOffs>4432</BitOffs>
+				<BitSize>2048</BitSize>
+				<BitOffs>4464</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>wsEquipment</Name>
 				<Type GUID="{18071995-0000-0000-0000-000200000019}">WSTRING(25)</Type>
 				<BitSize>416</BitSize>
-				<BitOffs>4848</BitOffs>
+				<BitOffs>6512</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sFaam_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
 				<BitSize>168</BitSize>
-				<BitOffs>5264</BitOffs>
+				<BitOffs>6928</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -602,8 +622,8 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{076E51B3-A56F-8376-1E93-6298D2C2205C}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>3181376</BitSize>
+			<Name GUID="{B4CCDA74-77D0-3F11-756C-A6B3FD1D442E}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>3331136</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
 				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
@@ -629,7 +649,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>AlarmHistory</Name>
-				<Type GUID="{D99E6689-7097-50F5-AABB-7BD6E17D3583}">ST_AlarmInfo_DB_save</Type>
+				<Type GUID="{66ACB3D4-4616-F0B2-B7C7-17A57F31ACBE}">ST_AlarmInfo_DB_save</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>3</Elements>
@@ -639,7 +659,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[DATA]]></Comment>
-				<BitSize>489600</BitSize>
+				<BitSize>639360</BitSize>
 				<BitOffs>4736</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -654,7 +674,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>77760</BitSize>
-				<BitOffs>494336</BitOffs>
+				<BitOffs>644096</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionReport</Name>
@@ -668,7 +688,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>123840</BitSize>
-				<BitOffs>572096</BitOffs>
+				<BitOffs>721856</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionSummary</Name>
@@ -682,7 +702,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>106560</BitSize>
-				<BitOffs>695936</BitOffs>
+				<BitOffs>845696</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>SoDuration</Name>
@@ -696,7 +716,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>1512000</BitSize>
-				<BitOffs>802496</BitOffs>
+				<BitOffs>952256</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>StopCount</Name>
@@ -710,7 +730,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>455040</BitSize>
-				<BitOffs>2314496</BitOffs>
+				<BitOffs>2464256</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
@@ -724,11 +744,11 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>411840</BitSize>
-				<BitOffs>2769536</BitOffs>
+				<BitOffs>2919296</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" TargetNetId="169.254.64.10.1.1" Target64Bit="true" ShowHideConfigurations="#x106">
+	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" Target64Bit="true" ShowHideConfigurations="#x106">
 		<System>
 			<Settings MaxCpus="20" NonWinCpus="4">
 				<Cpu/>
@@ -752,7 +772,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.NovRamData</Name>
-							<Type GUID="{076E51B3-A56F-8376-1E93-6298D2C2205C}">ST_NovRam</Type>
+							<Type GUID="{B4CCDA74-77D0-3F11-756C-A6B3FD1D442E}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>

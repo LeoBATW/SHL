@@ -63,7 +63,8 @@ VAR_INST
 	
 	testTimer:TON;
 	fileName: STRING(255);
-	eStrIndex:dint;
+	eStrIndex:DINT;
+	fbAlarmHistory_DB		: FB_AlarmHistory_DB;
 END_VAR
 VAR
 	
@@ -75,7 +76,8 @@ eStrIndex:=E_StructureType.AlarmHistory;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-
+//DB_Test
+fbAlarmHistory_DB(udiDBID:=1);
 
 CASE iStep OF
 	0://check if file full 
@@ -114,9 +116,18 @@ CASE iStep OF
 		//=====Method 1=====
 		
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.lrTime_ms    	:= 987;
+		DataToDB.diMsgNumber  	:= 777;
+		DataToDB.sTimeString 	:= '2023-11-24 17:17:17';
+		DataToDB.wsMsgText    	:= "TEST_MsgText軟體測試";
+		DataToDB.sPLC        	:= 'CoreSysTest';
+		DataToDB.wsEquipment  	:= "RSA軟體測試";
+		DataToDB.sFaam_id    	:= 'TEST_Faam_id';
 		
-		
+		IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=DataToDB) THEN
+			iStep:=320;
+		END_IF
+				
 		//=====Method 2=====
 		//write to Csv
 		//Write to DB CSV bulk insert to DB
@@ -125,7 +136,7 @@ CASE iStep OF
 		
 		//simulate DB process time
 		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
+		IF testTimer.Q  OR TRUE THEN//DB_TEST
 			testTimer(IN:=FALSE);
 			
 			IF TRUE THEN//write OK
@@ -1324,6 +1335,7 @@ END_CASE]]></ST>
       <LineId Id="127" Count="1" />
       <LineId Id="47" Count="0" />
       <LineId Id="516" Count="0" />
+      <LineId Id="578" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="48" Count="0" />
       <LineId Id="161" Count="0" />
@@ -1354,8 +1366,12 @@ END_CASE]]></ST>
       <LineId Id="376" Count="1" />
       <LineId Id="387" Count="0" />
       <LineId Id="378" Count="0" />
-      <LineId Id="457" Count="0" />
-      <LineId Id="388" Count="1" />
+      <LineId Id="586" Count="0" />
+      <LineId Id="595" Count="4" />
+      <LineId Id="557" Count="0" />
+      <LineId Id="575" Count="0" />
+      <LineId Id="579" Count="2" />
+      <LineId Id="388" Count="0" />
       <LineId Id="379" Count="0" />
       <LineId Id="381" Count="1" />
       <LineId Id="390" Count="0" />

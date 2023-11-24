@@ -1,0 +1,655 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ProductionHistoryInspection_DB" Id="{eed554fe-dc39-4fdb-a435-ca7dd0b887f2}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ProductionHistoryInspection_DB
+VAR_INPUT
+	udiDBID	: UDINT;
+END_VAR
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+VAR
+	
+	// FBs
+	FB_PLCDBCmdEvt_PHI : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	
+	// Vars
+	iInsertPHIstep	: INT ;
+	iErrStep		: INT := 9000;
+	
+	// SQL Command Parameters
+	stPara_PHI 		: ARRAY[0..40] OF ST_ExpParameter ;
+	stCmdPara_PHI 	: ST_CmdPara_PHI_DB ;
+	
+	// SQL Command
+	sCmd_insertPHI 	: STRING(2000) ; //由M_CreateSQLCmd自動產生
+	sCmd_TranHead 	: STRING(2000) := 'BEGIN TRY      BEGIN TRAN;  declare @hid numeric(18,0);' ;
+	sCmd_TranTail 	: STRING(2000) := 'COMMIT TRAN;  END TRY  BEGIN CATCH      ROLLBACK TRAN;  THROW;  END CATCH' ;
+	sCmd_ProductHistory_NoInspection : STRING(2000) := 'INSERT INTO [dbo].[product_history] ([start_time], [duration], [end_time], [station_number], [station_name], [track_number], [wpc_number], [part_ok_overal_results], [so_number], [faam_id], [so_id]) 
+VALUES ({dt_start_time}, {r_duration}, {dt_end_time}, {di_station_number}, $'{wstr_station_name}$', {di_track_number}, {di_wpc_number}, NULL, $'{str_so_number}$', $'{str_faam_id}$', {di_so_id}) ' ;
+
+	sCmd_ProductHistory : STRING(2000) := 'INSERT INTO [dbo].[product_history] ([start_time], [duration], [end_time], [station_number], [station_name], [track_number], [wpc_number], [part_ok_overal_results], [so_number], [faam_id], [so_id]) 
+VALUES ({dt_start_time}, {r_duration}, {dt_end_time}, {di_station_number}, $'{wstr_station_name}$', {di_track_number}, {di_wpc_number}, {b_part_ok_overal_results}, $'{str_so_number}$', $'{str_faam_id}$', {di_so_id}) 
+SELECT @hid=@@IDENTITY;' ;
+
+
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;
+	
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{8f5a21da-6bca-454b-a8f2-6bf4586d09c2}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_CreateInspectionSQLCmd" Id="{3214b238-d6c4-4af4-803c-5fc5cbce069f}">
+      <Declaration><![CDATA[METHOD PRIVATE M_CreateInspectionSQLCmd : BOOL
+VAR_INPUT
+	diNo 		: DINT;
+	bWithValue 	: BOOL;
+END_VAR
+VAR_OUTPUT
+	sSQLCmd		: STRING(2000);
+END_VAR
+VAR_INST
+	fbFormatBody   	: FB_FormatString2;
+	fbFormatValue   : FB_FormatString2;
+
+	// SQL Command main section
+	sFormatBody    	: STRING(2000) := '
+		INSERT INTO [dbo].[inspection] 
+				([sub_station_number], [sensor_type], [inspection_results], [inspection_value], [faam_id], [so_number], [product_history_id]) 
+		VALUES 	({di_sub_station_number_%.d}, $'{str_sensor_type_%.d}$', {b_inspection_results_%.d}, %s, $'{str_faam_id_%.d}$', $'{str_so_number_%.d}$', @hid) ';
+	
+
+	
+	// SQL Command inspection part section
+	sValueWithValue		: STRING := '{r_inspection_value_%.d}';
+	sValueWithoutValue	: STRING := 'NULL';
+	
+	sFormatValue		: T_MaxString := '';
+	sValueOut			: STRING;
+	sValueOutEmpty		: STRING;
+	sOut				: STRING(2000);
+	sOutEmpty			: STRING(2000);
+	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bWithValue THEN
+	sFormatValue := sValueWithValue;
+	sValueOut := sValueOutEmpty;
+	fbFormatValue(
+		pFormatString:= ADR(sFormatValue), 
+		arg1:= F_DINT( diNo ), 
+		arg2:= , 
+		arg3:= , 
+		arg4:= , 
+		arg5:= , 
+		arg6:= , 
+		arg7:= , 
+		arg8:= , 
+		arg9:= , 
+		arg10:= , 
+		pDstString:= ADR(sValueOut), 
+		nDstSize:= SIZEOF(sValueOut), 
+		bError=> , 
+		nErrId=> );
+	sFormatValue := sValueOut;
+ELSE
+	sFormatValue := sValueWithoutValue;
+END_IF
+
+
+sOut := sOutEmpty;
+fbFormatBody(
+	pFormatString:= ADR(sFormatBody), 
+	arg1:= F_DINT( diNo ), 
+	arg2:= F_DINT( diNo ), 
+	arg3:= F_DINT( diNo ), 
+	arg4:= F_STRING( sFormatValue ), 
+	arg5:= F_DINT( diNo ), 
+	arg6:= F_DINT( diNo ), 
+	arg7:= , 
+	arg8:= , 
+	arg9:= , 
+	arg10:= , 
+	pDstString:= ADR(sOut), 
+	nDstSize:= SIZEOF(sOut), 
+	bError=> , 
+	nErrId=> );
+	
+	
+IF (NOT fbFormatBody.bError) AND (NOT fbFormatValue.bError) THEN
+	sSQLCmd := sOut;
+	M_CreateInspectionSQLCmd := TRUE;
+ELSE
+	M_CreateInspectionSQLCmd := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_CreateSQLCmd" Id="{f899f75e-5a22-48a3-87bf-bbd41c31bcf6}">
+      <Declaration><![CDATA[METHOD PRIVATE M_CreateSQLCmd : BOOL
+VAR_INPUT
+	stInsertPHI : ST_PHI_GroupData_DB;
+END_VAR
+VAR_OUTPUT
+	sSqlCmdOut	: STRING(2000);
+END_VAR
+
+VAR
+	i 						: INT ;
+	arrInspectionSQLCmd 	: ARRAY[1..5] OF STRING(2000);
+	sCmd_temp 				: STRING(2000) ;
+	iInspectionNum 			: INT;
+	bInspectionCounted 		: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//if No inspection then only product history
+bInspectionCounted := FALSE ;
+
+IF NOT bInspectionCounted THEN
+	FOR i := 1 TO 5 DO
+		IF stInsertPHI.arrstInspection[i].diSub_station_number <> 0 THEN
+			iInspectionNum := iInspectionNum + 1 ;
+		END_IF
+		bInspectionCounted := TRUE ;
+	END_FOR
+END_IF
+
+
+IF iInspectionNum = 0 THEN //only product history
+	sSqlCmdOut := sCmd_ProductHistory_NoInspection ;
+	M_CreateSQLCmd := TRUE ;
+	
+ELSIF iInspectionNum > 0 THEN // With Inspection Data
+	// Create Inspection SQL Command
+	FOR i := 1 TO iInspectionNum DO
+		M_CreateInspectionSQLCmd(diNo := i, bWithValue := stInsertPHI.arrbInspectionResultHaveSensorValue[i], sSQLCmd=> arrInspectionSQLCmd[i]);
+	END_FOR
+	
+	Tc2_Utilities.CONCAT2 // Transaction head + Prodcution Histroy
+		(pSrcString1 := ADR(sCmd_TranHead) ,
+		 pSrcString2 := ADR(sCmd_ProductHistory) ,
+		 pDstString  := ADR(sCmd_temp) ,
+		 nDstSize    := SIZEOF(sCmd_temp)
+		) ;
+		
+	FOR i := 1 TO iInspectionNum DO // + Inspection
+		Tc2_Utilities.CONCAT2
+			(pSrcString1 := ADR(sCmd_temp) ,
+			 pSrcString2 := ADR(arrInspectionSQLCmd[i]) ,
+			 pDstString  := ADR(sCmd_temp) ,
+			 nDstSize    := SIZEOF(sCmd_temp)
+			) ;
+	END_FOR 
+		
+	// + Transaction tail 
+	Tc2_Utilities.CONCAT2
+		(pSrcString1 := ADR(sCmd_temp) ,
+		 pSrcString2 := ADR(sCmd_TranTail) ,
+		 pDstString  := ADR(sSqlCmdOut) ,
+		 nDstSize    := SIZEOF(sSqlCmdOut)
+		) ;
+	M_CreateSQLCmd := TRUE ;	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_FillUploadData" Id="{7ddc660a-e00d-406c-9d50-3f0cd03e0ddf}">
+      <Declaration><![CDATA[METHOD PRIVATE M_FillUploadData : BOOL
+VAR_INPUT
+	stInsertPHI : ST_PHI_GroupData_DB;
+END_VAR
+VAR_OUTPUT
+	stCmdPara_PHI 	: ST_CmdPara_PHI_DB ;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Production History
+stCmdPara_PHI.dt_start_time 			:= stInsertPHI.stProductHistory.dtStart_time ;
+stCmdPara_PHI.r_duration 				:= stInsertPHI.stProductHistory.rDuration ;
+stCmdPara_PHI.dt_end_time 				:= stInsertPHI.stProductHistory.dtEnd_time ;
+stCmdPara_PHI.di_station_number 		:= stInsertPHI.stProductHistory.diStation_number ;
+stCmdPara_PHI.wstr_station_name 		:= stInsertPHI.stProductHistory.wsStation_name ;
+stCmdPara_PHI.di_track_number 			:= stInsertPHI.stProductHistory.diTrack_number ;
+stCmdPara_PHI.di_wpc_number 			:= stInsertPHI.stProductHistory.diWpc_number ;
+stCmdPara_PHI.b_part_ok_overal_results 	:= stInsertPHI.stProductHistory.bPart_ok_overal_results ;
+stCmdPara_PHI.str_so_number 			:= stInsertPHI.stProductHistory.sSo_number ;
+stCmdPara_PHI.str_faam_id 				:= stInsertPHI.stProductHistory.sFaam_id ;
+stCmdPara_PHI.di_so_id 					:= stInsertPHI.stProductHistory.diSo_id ;
+
+// 1st Inspection
+stCmdPara_PHI.di_sub_station_number_1 	:= stInsertPHI.arrstInspection[1].diSub_station_number ;
+stCmdPara_PHI.str_sensor_type_1 		:= stInsertPHI.arrstInspection[1].sSensor_type ;
+stCmdPara_PHI.b_inspection_results_1 	:= stInsertPHI.arrstInspection[1].bInspection_results ;
+stCmdPara_PHI.r_inspection_value_1 		:= stInsertPHI.arrstInspection[1].rInspection_value ;
+stCmdPara_PHI.str_faam_id_1 			:= stInsertPHI.arrstInspection[1].sFaam_id ;
+stCmdPara_PHI.str_so_number_1 			:= stInsertPHI.arrstInspection[1].sSo_number ;
+
+// 2nd Inspection
+stCmdPara_PHI.di_sub_station_number_2 	:= stInsertPHI.arrstInspection[2].diSub_station_number ;
+stCmdPara_PHI.str_sensor_type_2 		:= stInsertPHI.arrstInspection[2].sSensor_type ;
+stCmdPara_PHI.b_inspection_results_2 	:= stInsertPHI.arrstInspection[2].bInspection_results ;
+stCmdPara_PHI.r_inspection_value_2 		:= stInsertPHI.arrstInspection[2].rInspection_value ;
+stCmdPara_PHI.str_faam_id_2 			:= stInsertPHI.arrstInspection[2].sFaam_id ;
+stCmdPara_PHI.str_so_number_2 			:= stInsertPHI.arrstInspection[2].sSo_number ;
+
+// 3nd Inspection
+stCmdPara_PHI.di_sub_station_number_3 	:= stInsertPHI.arrstInspection[3].diSub_station_number ;
+stCmdPara_PHI.str_sensor_type_3 		:= stInsertPHI.arrstInspection[3].sSensor_type ;
+stCmdPara_PHI.b_inspection_results_3 	:= stInsertPHI.arrstInspection[3].bInspection_results ;
+stCmdPara_PHI.r_inspection_value_3 		:= stInsertPHI.arrstInspection[3].rInspection_value ;
+stCmdPara_PHI.str_faam_id_3 			:= stInsertPHI.arrstInspection[3].sFaam_id ;
+stCmdPara_PHI.str_so_number_3 			:= stInsertPHI.arrstInspection[3].sSo_number ;
+
+// 4nd Inspection
+stCmdPara_PHI.di_sub_station_number_4 	:= stInsertPHI.arrstInspection[4].diSub_station_number ;
+stCmdPara_PHI.str_sensor_type_4 		:= stInsertPHI.arrstInspection[4].sSensor_type ;
+stCmdPara_PHI.b_inspection_results_4 	:= stInsertPHI.arrstInspection[4].bInspection_results ;
+stCmdPara_PHI.r_inspection_value_4 		:= stInsertPHI.arrstInspection[4].rInspection_value ;
+stCmdPara_PHI.str_faam_id_4 			:= stInsertPHI.arrstInspection[4].sFaam_id ;
+stCmdPara_PHI.str_so_number_4 			:= stInsertPHI.arrstInspection[4].sSo_number ;
+
+// 5nd Inspection
+stCmdPara_PHI.di_sub_station_number_5 	:= stInsertPHI.arrstInspection[5].diSub_station_number ;
+stCmdPara_PHI.str_sensor_type_5 		:= stInsertPHI.arrstInspection[5].sSensor_type ;
+stCmdPara_PHI.b_inspection_results_5 	:= stInsertPHI.arrstInspection[5].bInspection_results ;
+stCmdPara_PHI.r_inspection_value_5 		:= stInsertPHI.arrstInspection[5].rInspection_value ;
+stCmdPara_PHI.str_faam_id_5 			:= stInsertPHI.arrstInspection[5].sFaam_id ;
+stCmdPara_PHI.str_so_number_5 			:= stInsertPHI.arrstInspection[5].sSo_number ;
+
+M_FillUploadData := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{df91013d-c098-4f30-90da-08215996ac31}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iInsertPHIstep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{5fa74a22-facd-47d3-9c2c-9cb82006358f}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{53673f7c-9908-42a3-a329-d55d5da8c1ea}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{27b7e07e-1d35-41f6-8e84-9aae001ecff7}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{390f923b-6910-4b81-831d-cbe7f7e02153}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// SQL Command變數宣告
+//Production History
+stPara_PHI[0].sParaName := 'dt_start_time' ;
+stPara_PHI[0].eParaType := E_ExpParameterType.DateTime ;
+stPara_PHI[0].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.dt_start_time) ;
+stPara_PHI[1].sParaName := 'r_duration' ;
+stPara_PHI[1].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[1].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_duration) ;
+stPara_PHI[2].sParaName := 'dt_end_time' ;
+stPara_PHI[2].eParaType := E_ExpParameterType.DateTime ;
+stPara_PHI[2].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.dt_end_time) ;
+stPara_PHI[3].sParaName := 'di_station_number' ;
+stPara_PHI[3].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[3].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_station_number) ;
+stPara_PHI[4].sParaName := 'wstr_station_name' ;
+stPara_PHI[4].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_PHI[4].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.wstr_station_name) ;
+stPara_PHI[5].sParaName := 'di_track_number' ;
+stPara_PHI[5].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[5].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_track_number) ;
+stPara_PHI[6].sParaName := 'di_wpc_number' ;
+stPara_PHI[6].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[6].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_wpc_number) ;
+stPara_PHI[7].sParaName := 'b_part_ok_overal_results' ;
+stPara_PHI[7].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[7].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_part_ok_overal_results) ;
+stPara_PHI[8].sParaName := 'str_so_number' ;
+stPara_PHI[8].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[8].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number) ;
+stPara_PHI[9].sParaName := 'str_faam_id' ;
+stPara_PHI[9].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[9].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id) ;
+stPara_PHI[10].sParaName := 'di_so_id' ;
+stPara_PHI[10].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[10].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_so_id) ;
+
+// Inspection1
+stPara_PHI[11].sParaName := 'di_sub_station_number_1' ;
+stPara_PHI[11].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[11].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_sub_station_number_1) ;
+stPara_PHI[12].sParaName := 'str_sensor_type_1' ;
+stPara_PHI[12].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[12].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_sensor_type_1) ;
+stPara_PHI[13].sParaName := 'b_inspection_results_1' ;
+stPara_PHI[13].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[13].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_inspection_results_1) ;
+stPara_PHI[14].sParaName := 'r_inspection_value_1' ;
+stPara_PHI[14].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[14].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_inspection_value_1) ;
+stPara_PHI[15].sParaName := 'str_faam_id_1' ;
+stPara_PHI[15].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[15].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id_1) ;
+stPara_PHI[16].sParaName := 'str_so_number_1' ;
+stPara_PHI[16].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[16].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number_1) ;
+
+// Inspection2
+stPara_PHI[17].sParaName := 'di_sub_station_number_2' ;
+stPara_PHI[17].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[17].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_sub_station_number_2) ;
+stPara_PHI[18].sParaName := 'str_sensor_type_2' ;
+stPara_PHI[18].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[18].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_sensor_type_2) ;
+stPara_PHI[19].sParaName := 'b_inspection_results_2' ;
+stPara_PHI[19].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[19].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_inspection_results_2) ;
+stPara_PHI[20].sParaName := 'r_inspection_value_2' ;
+stPara_PHI[20].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[20].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_inspection_value_2) ;
+stPara_PHI[21].sParaName := 'str_faam_id_2' ;
+stPara_PHI[21].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[21].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id_2) ;
+stPara_PHI[22].sParaName := 'str_so_number_2' ;
+stPara_PHI[22].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[22].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number_2) ;
+
+// Inspection3
+stPara_PHI[23].sParaName := 'di_sub_station_number_3' ;
+stPara_PHI[23].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[23].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_sub_station_number_3) ;
+stPara_PHI[24].sParaName := 'str_sensor_type_3' ;
+stPara_PHI[24].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[24].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_sensor_type_3) ;
+stPara_PHI[25].sParaName := 'b_inspection_results_3' ;
+stPara_PHI[25].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[25].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_inspection_results_3) ;
+stPara_PHI[26].sParaName := 'r_inspection_value_3' ;
+stPara_PHI[26].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[26].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_inspection_value_3) ;
+stPara_PHI[27].sParaName := 'str_faam_id_3' ;
+stPara_PHI[27].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[27].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id_3) ;
+stPara_PHI[28].sParaName := 'str_so_number_3' ;
+stPara_PHI[28].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[28].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number_3) ;
+
+// Inspection4
+stPara_PHI[29].sParaName := 'di_sub_station_number_4' ;
+stPara_PHI[29].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[29].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_sub_station_number_4) ;
+stPara_PHI[30].sParaName := 'str_sensor_type_4' ;
+stPara_PHI[30].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[30].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_sensor_type_4) ;
+stPara_PHI[31].sParaName := 'b_inspection_results_4' ;
+stPara_PHI[31].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[31].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_inspection_results_4) ;
+stPara_PHI[32].sParaName := 'r_inspection_value_4' ;
+stPara_PHI[32].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[32].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_inspection_value_4) ;
+stPara_PHI[33].sParaName := 'str_faam_id_4' ;
+stPara_PHI[33].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[33].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id_4) ;
+stPara_PHI[34].sParaName := 'str_so_number_4' ;
+stPara_PHI[34].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[34].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number_4) ;
+
+// Inspection5
+stPara_PHI[35].sParaName := 'di_sub_station_number_5' ;
+stPara_PHI[35].eParaType := E_ExpParameterType.Int32 ;
+stPara_PHI[35].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.di_sub_station_number_5) ;
+stPara_PHI[36].sParaName := 'str_sensor_type_5' ;
+stPara_PHI[36].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[36].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_sensor_type_5) ;
+stPara_PHI[37].sParaName := 'b_inspection_results_5' ;
+stPara_PHI[37].eParaType := E_ExpParameterType.Boolean ;
+stPara_PHI[37].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.b_inspection_results_5) ;
+stPara_PHI[38].sParaName := 'r_inspection_value_5' ;
+stPara_PHI[38].eParaType := E_ExpParameterType.Float32 ;
+stPara_PHI[38].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.r_inspection_value_5) ;
+stPara_PHI[39].sParaName := 'str_faam_id_5' ;
+stPara_PHI[39].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[39].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_faam_id_5) ;
+stPara_PHI[40].sParaName := 'str_so_number_5' ;
+stPara_PHI[40].eParaType := E_ExpParameterType.STRING_ ;
+stPara_PHI[40].nParaSize := SIZEOF(ST_CmdPara_PHI_DB.str_so_number_5) ;
+M_SetSQLCmdPara := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{673bc8a1-57b1-4768-8894-10ec94f59aa7}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stPHI : ST_PHI_GroupData_DB ;
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iInsertPHIstep OF
+	0:
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		M_FillUploadData(stInsertPHI := stPHI, stCmdPara_PHI => stCmdPara_PHI);
+		
+		// SQL Command產生
+		IF M_CreateSQLCmd(stInsertPHI := stPHI, sSqlCmdOut=> sCmd_insertPHI) THEN
+			iInsertPHIstep := iInsertPHIstep + 100;
+		END_IF
+		M_SetBusy();
+		tStartTime := TIME();
+		
+	100:
+		IF FB_PLCDBCmdEvt_PHI.Execute
+			(
+				hDBID        := udiDBID ,
+				pExpression  := ADR(sCmd_insertPHI) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_insertPHI) ,
+			 	pData        := ADR(stCmdPara_PHI) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stCmdPara_PHI) ,
+			 	pParameter   := ADR(stPara_PHI) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_PHI) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_PHI.bError THEN
+				ITF_TcMessage := FB_PLCDBCmdEvt_PHI.ipTcResult ; //ErrorMessage字串	
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();			
+				iInsertPHIstep :=  iErrStep + 100;
+			ELSE
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iInsertPHIstep := 0 ;
+				M_Upload := TRUE;
+			END_IF
+		END_IF
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_ProductionHistoryInspection_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_CreateInspectionSQLCmd">
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="61" Count="14" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="24" Count="15" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="78" Count="2" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="83" Count="1" />
+      <LineId Id="82" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_CreateSQLCmd">
+      <LineId Id="282" Count="10" />
+      <LineId Id="383" Count="0" />
+      <LineId Id="293" Count="3" />
+      <LineId Id="384" Count="1" />
+      <LineId Id="416" Count="0" />
+      <LineId Id="388" Count="1" />
+      <LineId Id="387" Count="0" />
+      <LineId Id="406" Count="0" />
+      <LineId Id="399" Count="4" />
+      <LineId Id="395" Count="0" />
+      <LineId Id="407" Count="0" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="411" Count="4" />
+      <LineId Id="410" Count="0" />
+      <LineId Id="408" Count="0" />
+      <LineId Id="404" Count="0" />
+      <LineId Id="417" Count="6" />
+      <LineId Id="405" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_FillUploadData">
+      <LineId Id="34" Count="0" />
+      <LineId Id="6" Count="10" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="17" Count="5" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="23" Count="4" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="38" Count="6" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="46" Count="6" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="54" Count="6" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="61" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_Reset">
+      <LineId Id="15" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_SetSQLCmdPara">
+      <LineId Id="6" Count="0" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="22" Count="32" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="55" Count="17" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="73" Count="16" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="91" Count="17" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="110" Count="17" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="135" Count="18" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="17" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ProductionHistoryInspection_DB.M_Upload">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="16" Count="2" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="26" Count="9" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="52" Count="1" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

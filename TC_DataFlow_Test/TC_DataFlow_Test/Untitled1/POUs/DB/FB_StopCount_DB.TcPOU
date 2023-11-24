@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_StopCount_DB" Id="{695a24c2-ac2f-4f15-b05d-0397e6a023dc}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_StopCount_DB
+VAR_INPUT
+	udiDBID : UDINT := 1 ;
+END_VAR
+
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+
+VAR
+	// FBs
+	FB_PLCDBCmdEvt_stop_count : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	// Vars
+	stPara_stop_count : ARRAY[0..8] OF ST_ExpParameter ;
+	iStep				: INT;
+	iErrStep			: INT := 9000;
+	
+	// SQL Command
+	sCmd_stop_count : STRING(1000) := '
+		INSERT INTO [dbo].[stop_count] (
+						[start_time], [end_time], [employee_name_logged_in], [stop_reason], [assembly_income_code], [so_number], [faam_id], [so_id], [equipment]) 
+		VALUES (		{dt_start_time}, {dt_end_time}, $'{wstr_employee_name_logged_in}$', $'{str_stop_reason}$', $'{str_assembly_income_code}$', $'{str_so_number}$', $'{str_faam_id}$', {di_so_id}, $'{wstr_equipment}$') ' ;
+		
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{767807fc-df0f-408d-a149-e67b1aa4c616}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{10616f97-658a-496d-8ebe-a7e4e64e0cef}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iStep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{2a587671-1355-4971-9269-9afda10b6092}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{faac22b2-ef6d-4624-8a70-4cc7f8f096c1}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{4bbdec7c-2277-45aa-8984-afb5ee19bc90}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{0c6e86e0-8764-4dc2-8015-918f0180e52b}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stPara_stop_count[0].sParaName := 'dt_start_time' ;
+stPara_stop_count[0].eParaType := E_ExpParameterType.DateTime ;
+stPara_stop_count[0].nParaSize := SIZEOF(ST_StopCount.dtStart_time) ;
+stPara_stop_count[1].sParaName := 'dt_end_time' ;
+stPara_stop_count[1].eParaType := E_ExpParameterType.DateTime ;
+stPara_stop_count[1].nParaSize := SIZEOF(ST_StopCount.dtEnd_time) ;
+stPara_stop_count[2].sParaName := 'wstr_employee_name_logged_in' ;
+stPara_stop_count[2].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_stop_count[2].nParaSize := SIZEOF(ST_StopCount.wsEmployee_name_logged_in) ;
+stPara_stop_count[3].sParaName := 'str_stop_reason' ;
+stPara_stop_count[3].eParaType := E_ExpParameterType.STRING_ ;
+stPara_stop_count[3].nParaSize := SIZEOF(ST_StopCount.sStop_reason) ;
+stPara_stop_count[4].sParaName := 'str_assembly_income_code' ;
+stPara_stop_count[4].eParaType := E_ExpParameterType.STRING_ ;
+stPara_stop_count[4].nParaSize := SIZEOF(ST_StopCount.sAssembly_income_code) ;
+stPara_stop_count[5].sParaName := 'str_so_number' ;
+stPara_stop_count[5].eParaType := E_ExpParameterType.STRING_ ;
+stPara_stop_count[5].nParaSize := SIZEOF(ST_StopCount.sSo_number) ;
+stPara_stop_count[6].sParaName := 'str_faam_id' ;
+stPara_stop_count[6].eParaType := E_ExpParameterType.STRING_ ;
+stPara_stop_count[6].nParaSize := SIZEOF(ST_StopCount.sFaam_id) ;
+stPara_stop_count[7].sParaName := 'di_so_id' ;
+stPara_stop_count[7].eParaType := E_ExpParameterType.Int32 ;
+stPara_stop_count[7].nParaSize := SIZEOF(ST_StopCount.diSo_id) ;
+stPara_stop_count[8].sParaName := 'wstr_equipment' ;
+stPara_stop_count[8].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_stop_count[8].nParaSize := SIZEOF(ST_StopCount.wsEquipment) ;
+M_SetSQLCmdPara := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{a3288c20-8a6c-4001-8b9a-2a5981cacd2e}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stStopCount : ST_StopCount ;
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iStep OF
+	0: 
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		
+		tStartTime := TIME();
+		M_SetBusy();
+		iStep := iStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt_stop_count.Execute
+			(
+				hDBID        := udiDBID ,
+			 	pExpression  := ADR(sCmd_stop_count) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_stop_count) ,
+			 	pData        := ADR(stStopCount) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stStopCount) ,
+			 	pParameter   := ADR(stPara_stop_count) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_stop_count) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_stop_count.bError THEN // 異常
+				ITF_TcMessage := FB_PLCDBCmdEvt_stop_count.ipTcResult;
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();		
+				iStep := iErrStep + 100;
+			ELSE // 成功寫入
+				M_Upload := TRUE;
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iStep := 0;
+			END_IF
+		END_IF
+
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_StopCount_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_Reset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_SetSQLCmdPara">
+      <LineId Id="206" Count="25" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="202" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_StopCount_DB.M_Upload">
+      <LineId Id="682" Count="4" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="687" Count="20" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="729" Count="1" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="708" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="717" Count="2" />
+      <LineId Id="620" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

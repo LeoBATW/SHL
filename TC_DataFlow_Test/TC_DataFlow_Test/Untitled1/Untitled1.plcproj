@@ -102,22 +102,46 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_DataToNovRam.TcPOU">
+    <Compile Include="POUs\DataFlow\FB_DataToNovRam.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_FileRingBufferToDB.TcPOU">
+    <Compile Include="POUs\DataFlow\FB_FileRingBufferToDB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_NovRamToFileRingBuffer.TcPOU">
+    <Compile Include="POUs\DataFlow\FB_NovRamToFileRingBuffer.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DataFlow\PG_AddData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DataFlow\PG_SaveData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_AlarmHistory_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_OEE_ProductionReport_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_OEE_ProductionSummary_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_ProductionHistoryInspection_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_Regular_Check_Results_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_SoDuration_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\FB_StopCount_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DB\Useless\FB_DataUpload.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\PG_AddData.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\PG_SaveData.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Task_Consumer.TcTTO">
@@ -130,6 +154,9 @@
     <Folder Include="DUTs\DataFlowManagement\ST_NovRam_SubST" />
     <Folder Include="DUTs\PHI" />
     <Folder Include="GVLs" />
+    <Folder Include="POUs\DB" />
+    <Folder Include="POUs\DataFlow" />
+    <Folder Include="POUs\DB\Useless" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>
@@ -145,6 +172,14 @@
     <PlaceholderReference Include="Tc2_Utilities">
       <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Utilities</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Database">
+      <DefaultResolution>Tc3_Database, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Database</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_EventLogger">
+      <DefaultResolution>Tc3_EventLogger, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_EventLogger</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc3_Module">
       <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>

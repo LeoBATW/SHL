@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_OEE_ProductionReport_DB" Id="{4d67da4e-ba05-480c-9cc8-35ae115b2369}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_OEE_ProductionReport_DB
+VAR_INPUT
+	udiDBID : UDINT := 1 ;
+END_VAR
+
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+
+VAR
+	// FBs
+	FB_PLCDBCmdEvt_production_Report : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+	
+	// Vars
+	stPara_production_report 	: ARRAY[0..23] OF ST_ExpParameter ;
+	iStep						: INT;
+	iErrStep					: INT := 9000;
+	
+	// SQL Command
+	sCmd_production_report : STRING(1000) := '
+		INSERT INTO [dbo].[production_report] 
+						([oee_equipment], [time_start], [time_end], [average_ppm], [ideal_production], [ok_part_count], [total_idle_time], [real_production], [good_parts], [good_parts_percentage], [quantity_loss], [quantity_loss_percentage], [pm], [ym], [am], [em], [om], [available_time], [schedule_loss], [running_time], [downtime_loss], [faam_id], [so_number], [so_id]) 
+		VALUES 			($'{wstr_oee_equipment}$', {dt_time_start}, {dt_time_end}, {di_average_ppm}, {di_ideal_production}, {di_ok_part_count}, {r_total_idle_time}, {di_real_production}, {di_good_parts}, {r_good_parts_percentage}, {di_quantity_loss}, {r_quantity_loss_percentage}, {r_pm}, {r_ym}, {r_am}, {r_em}, {r_om}, {r_available_time}, {r_schedule_loss}, {r_running_time}, {r_downtime_loss}, $'{str_faam_id}$', $'{str_so_number}$', {di_so_id}) ' ;
+		
+	// Time
+	tStartTime	: TIME;
+	tEndTime	: TIME;
+	tDuration	: TIME;	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{d3ab164e-dcf1-4eb5-96d4-39087ce944d9}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{b9b558c6-b2ec-497c-8e23-dd0d13b131de}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iStep := 0;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{de10c1c8-be2f-48fe-8ed6-a73f8cc7e525}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{00b0259d-1d53-4e5e-9e81-5172a54a72fd}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{e04104b3-ecd4-4dc6-95e0-824ecc5528f2}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{23a57d7c-46da-46ef-a858-c7b1ea952da7}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stPara_production_report[0].sParaName := 'wstr_oee_equipment' ;
+stPara_production_report[0].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_production_report[0].nParaSize := SIZEOF(ST_OEE_ProductionReport.wsOee_equipment) ;
+stPara_production_report[1].sParaName := 'dt_time_start' ;
+stPara_production_report[1].eParaType := E_ExpParameterType.DateTime ;
+stPara_production_report[1].nParaSize := SIZEOF(ST_OEE_ProductionReport.dtTime_start) ;
+stPara_production_report[2].sParaName := 'dt_time_end' ;
+stPara_production_report[2].eParaType := E_ExpParameterType.DateTime ;
+stPara_production_report[2].nParaSize := SIZEOF(ST_OEE_ProductionReport.dtTime_end) ;
+stPara_production_report[3].sParaName := 'di_average_ppm' ;
+stPara_production_report[3].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[3].nParaSize := SIZEOF(ST_OEE_ProductionReport.diAverage_ppm) ;
+stPara_production_report[4].sParaName := 'di_ideal_production' ;
+stPara_production_report[4].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[4].nParaSize := SIZEOF(ST_OEE_ProductionReport.diIdeal_production) ;
+stPara_production_report[5].sParaName := 'di_ok_part_count' ;
+stPara_production_report[5].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[5].nParaSize := SIZEOF(ST_OEE_ProductionReport.diOk_part_count) ;
+stPara_production_report[6].sParaName := 'r_total_idle_time' ;
+stPara_production_report[6].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[6].nParaSize := SIZEOF(ST_OEE_ProductionReport.rTotal_idle_time) ;
+stPara_production_report[7].sParaName := 'di_real_production' ;
+stPara_production_report[7].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[7].nParaSize := SIZEOF(ST_OEE_ProductionReport.diReal_production) ;
+stPara_production_report[8].sParaName := 'di_good_parts' ;
+stPara_production_report[8].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[8].nParaSize := SIZEOF(ST_OEE_ProductionReport.diGood_parts) ;
+stPara_production_report[9].sParaName := 'r_good_parts_percentage' ;
+stPara_production_report[9].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[9].nParaSize := SIZEOF(ST_OEE_ProductionReport.rGood_parts_percentage) ;
+stPara_production_report[10].sParaName := 'di_quantity_loss' ;
+stPara_production_report[10].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[10].nParaSize := SIZEOF(ST_OEE_ProductionReport.diQuantity_loss) ;
+stPara_production_report[11].sParaName := 'r_quantity_loss_percentage' ;
+stPara_production_report[11].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[11].nParaSize := SIZEOF(ST_OEE_ProductionReport.rQuantity_loss_percentage) ;
+stPara_production_report[12].sParaName := 'r_pm' ;
+stPara_production_report[12].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[12].nParaSize := SIZEOF(ST_OEE_ProductionReport.rPm) ;
+stPara_production_report[13].sParaName := 'r_ym' ;
+stPara_production_report[13].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[13].nParaSize := SIZEOF(ST_OEE_ProductionReport.rYm) ;
+stPara_production_report[14].sParaName := 'r_am' ;
+stPara_production_report[14].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[14].nParaSize := SIZEOF(ST_OEE_ProductionReport.rAm) ;
+stPara_production_report[15].sParaName := 'r_em' ;
+stPara_production_report[15].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[15].nParaSize := SIZEOF(ST_OEE_ProductionReport.rEm) ;
+stPara_production_report[16].sParaName := 'r_om' ;
+stPara_production_report[16].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[16].nParaSize := SIZEOF(ST_OEE_ProductionReport.rOm) ;
+stPara_production_report[17].sParaName := 'r_available_time' ;
+stPara_production_report[17].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[17].nParaSize := SIZEOF(ST_OEE_ProductionReport.rAvailable_time) ;
+stPara_production_report[18].sParaName := 'r_schedule_loss' ;
+stPara_production_report[18].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[18].nParaSize := SIZEOF(ST_OEE_ProductionReport.rSchedule_loss) ;
+stPara_production_report[19].sParaName := 'r_running_time' ;
+stPara_production_report[19].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[19].nParaSize := SIZEOF(ST_OEE_ProductionReport.rRunning_time) ;
+stPara_production_report[20].sParaName := 'r_downtime_loss' ;
+stPara_production_report[20].eParaType := E_ExpParameterType.Float32 ;
+stPara_production_report[20].nParaSize := SIZEOF(ST_OEE_ProductionReport.rDowntime_loss) ;
+stPara_production_report[21].sParaName := 'str_faam_id' ;
+stPara_production_report[21].eParaType := E_ExpParameterType.STRING_ ;
+stPara_production_report[21].nParaSize := SIZEOF(ST_OEE_ProductionReport.sFaam_id) ;
+stPara_production_report[22].sParaName := 'str_so_number' ;
+stPara_production_report[22].eParaType := E_ExpParameterType.STRING_ ;
+stPara_production_report[22].nParaSize := SIZEOF(ST_OEE_ProductionReport.sSo_number) ;
+stPara_production_report[23].sParaName := 'di_so_id' ;
+stPara_production_report[23].eParaType := E_ExpParameterType.Int32 ;
+stPara_production_report[23].nParaSize := SIZEOF(ST_OEE_ProductionReport.diSo_id) ;
+M_SetSQLCmdPara := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Upload" Id="{93230791-9ceb-415f-90b9-d9b26727f90d}">
+      <Declaration><![CDATA[METHOD M_Upload : BOOL
+VAR_INPUT
+	stOeeProductionReport : ST_OEE_ProductionReport ;
+END_VAR
+VAR_INST
+	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE iStep OF
+	0: 
+		// SQLCmd的變數設定
+		M_SetSQLCmdPara();
+		
+		tStartTime := TIME();
+		M_SetBusy();
+		iStep := iStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt_production_Report.Execute
+			(
+				hDBID        := udiDBID ,
+			 	pExpression  := ADR(sCmd_production_report) , //SQL 指令的字串
+			 	cbExpression := SIZEOF(sCmd_production_report) ,
+			 	pData        := ADR(stOeeProductionReport) , //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+			 	cbData       := SIZEOF(stOeeProductionReport) ,
+			 	pParameter   := ADR(stPara_production_report) , //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+			 	cbParameter  := SIZEOF(stPara_production_report) ,
+			)
+		THEN
+			IF FB_PLCDBCmdEvt_production_Report.bError THEN // 異常
+				ITF_TcMessage := FB_PLCDBCmdEvt_production_Report.ipTcResult;
+				udiErrid := ITF_TcMessage.nEventId;	
+				M_SetError();		
+				iStep := iErrStep + 100;
+			ELSE // 成功寫入
+				M_Upload := TRUE;
+				tEndTime := TIME();
+				tDuration := tEndTime - tStartTime;
+				M_SetDone();
+				iStep := 0;
+			END_IF
+		END_IF
+
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_OEE_ProductionReport_DB">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_Reset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_SetSQLCmdPara">
+      <LineId Id="223" Count="70" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="202" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_OEE_ProductionReport_DB.M_Upload">
+      <LineId Id="682" Count="4" />
+      <LineId Id="728" Count="0" />
+      <LineId Id="687" Count="20" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="729" Count="1" />
+      <LineId Id="727" Count="0" />
+      <LineId Id="708" Count="0" />
+      <LineId Id="710" Count="1" />
+      <LineId Id="717" Count="2" />
+      <LineId Id="620" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
