@@ -27,7 +27,6 @@ END_IF
 
 ]]></ST>
     </Implementation>
-    <Folder Name="New" Id="{53f9874f-9eac-4a94-a5cd-264771f7980f}" />
     <Folder Name="Sub" Id="{2534213c-7e5e-4abf-9411-860d44a5b2d2}" />
     <Method Name="M_AlarmHistory" Id="{ff77384c-01f1-48bd-a1b3-7abc9b26720b}">
       <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
@@ -61,13 +60,9 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbAlarmHistory_DB		: FB_AlarmHistory_DB;
-END_VAR
-VAR
-	
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -113,8 +108,7 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
-		
+	
 		//write DataToDB to DB
 		DataToDB.lrTime_ms    	:= 987;
 		DataToDB.diMsgNumber  	:= 777;
@@ -127,29 +121,18 @@ CASE iStep OF
 		IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=DataToDB) THEN
 			iStep:=320;
 		END_IF
-				
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
+		
 	320://wait done
 		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  OR TRUE THEN//DB_TEST
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
-		END_IF
+		IF NOT fbAlarmHistory_DB.bError THEN//write OK
 		
+			AnalizeIndex:=AnalizeIndex+1;
+			
+			iStep:=330;
+			
+		ELSE//write failed need to write to log
+			;
+		END_IF
 		
 	330://Check if all data in array Analized
 		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
@@ -218,6 +201,8 @@ ELSIF structureType=E_StructureType.ProductionHistory THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
 ELSIF structureType=E_StructureType.ProductionReport THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionReport');
+	ELSIF structureType=E_StructureType.ProductionSummary THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionSummary');
 ELSIF structureType=E_StructureType.SoDuration THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'SoDuration');
 ELSIF structureType=E_StructureType.StopCount THEN
@@ -264,9 +249,12 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	
+	//DB
+	fbProductionHistoryInspection_DB		: FB_ProductionHistoryInspection_DB;
+	PHI_GroupData_DB : ST_PHI_GroupData_DB;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -276,6 +264,9 @@ fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
 				
+//DB_Test
+fbProductionHistoryInspection_DB(udiDBID:=1);
+
 CASE iStep OF
 	0://check if file full 
 		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
@@ -310,34 +301,40 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
-		
+	
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.rDuration    	:= 987;
+		DataToDB.usiStation_number  	:= 87;
+		DataToDB.sStation_name 	:= 'Station Test';
+		DataToDB.sFaam_id    	:= 'TEST_Faam_id';
 		
+		PHI_GroupData_DB.stProductHistory.dtStart_time 			:= TIME_TO_DT(TIME());
+		PHI_GroupData_DB.stProductHistory.dtEnd_time 				:= TIME_TO_DT(TIME());
+		PHI_GroupData_DB.stProductHistory.rDuration 				:= TIME_TO_REAL(TIME()) / 1000; // ms to s
+		PHI_GroupData_DB.stProductHistory.diStation_number 		:= 1;	// index id
+		PHI_GroupData_DB.stProductHistory.wsStation_name 			:= "TEST_Station1";		// index name from DB.HC
+		PHI_GroupData_DB.stProductHistory.diTrack_number 			:= 1;	//20230106 改為hardcode 1
+		PHI_GroupData_DB.stProductHistory.bPart_ok_overal_results := TRUE;
+		PHI_GroupData_DB.stProductHistory.sSo_number 				:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
+		PHI_GroupData_DB.stProductHistory.sFaam_id 				:= 'FB000120-E002-0001';		// from DB
+		PHI_GroupData_DB.stProductHistory.diSo_id 				:= 3736;			// from ADS  //需要對應DB的So表So_id
+		PHI_GroupData_DB.stProductHistory.diWpc_number			:= 2; // ShuttleID
 		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
-	320://wait done
-		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+		IF fbProductionHistoryInspection_DB.M_Upload(stPHI:=PHI_GroupData_DB) THEN
+			iStep:=320;
 		END_IF
 		
+	320://wait done
+		
+		IF NOT fbProductionHistoryInspection_DB.bError THEN//write OK
+		
+			AnalizeIndex:=AnalizeIndex+1;
+			
+			iStep:=330;
+			
+		ELSE//write failed need to write to log
+			;
+		END_IF
 		
 	330://Check if all data in array Analized
 		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
@@ -418,9 +415,9 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	fbOEE_ProductionReport_DB:FB_OEE_ProductionReport_DB;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -464,24 +461,20 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
-		
+	
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.diOk_part_count:=123;
+		DataToDB.sSo_number                    	:= 'Fred';
+		DataToDB.sFaam_id                      	:= 'FB000120-E002-0001';
+		DataToDB.diSo_id                        := 3736;
 		
+		IF fbOEE_ProductionReport_DB.M_Upload(stOeeProductionReport:=DataToDB) THEN
+			iStep:=320;
+		END_IF
 		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
 	320://wait done
 		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
+			IF NOT fbOEE_ProductionReport_DB.bError THEN//write OK
 			
 				AnalizeIndex:=AnalizeIndex+1;
 				
@@ -490,7 +483,6 @@ CASE iStep OF
 			ELSE//write failed need to write to log
 				;
 			END_IF
-		END_IF
 		
 		
 	330://Check if all data in array Analized
@@ -572,9 +564,9 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	fbOEE_ProductionSummary_DB:FB_OEE_ProductionSummary_DB;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -619,24 +611,22 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
-		
+	
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.diSo_id:=123;
+		DataToDB.diSummary_value:=456;
+		DataToDB.sSo_number                    	:= 'Fred';
+		DataToDB.sFaam_id                      	:= 'FB000120-E002-0001';
+		DataToDB.diSo_id                        := 3736;
+		
+		IF fbOEE_ProductionSummary_DB.M_Upload(stOEEProductionSummary:=DataToDB) THEN
+			iStep:=320;
+		END_IF
 		
 		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
 	320://wait done
 		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
+			IF NOT fbOEE_ProductionSummary_DB.bError THEN//write OK
 			
 				AnalizeIndex:=AnalizeIndex+1;
 				
@@ -645,7 +635,6 @@ CASE iStep OF
 			ELSE//write failed need to write to log
 				;
 			END_IF
-		END_IF
 		
 		
 	330://Check if all data in array Analized
@@ -705,7 +694,7 @@ VAR_INPUT
 END_VAR
 VAR_INST
 	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
-	DataToDB:ST_RegularCheck_Results_DB;
+	DataToDB:ST_RegularCheck_Results;//TEST
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
 	i:UDINT;
@@ -727,9 +716,9 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	fbRegular_Check_Results_DB:FB_Regular_Check_Results_DB;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -767,41 +756,37 @@ CASE iStep OF
 	300://wait done / take data from array
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			DataToDB:=arrDataFromFile[AnalizeIndex];
-			
+			//DataToDB:=arrDataFromFile[AnalizeIndex];
+			M_ST_RegularCheckResults_Convert(input:=arrDataFromFile[AnalizeIndex]
+											,output=>DataToDB);
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
 		
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.eSensor:=E_RegularCheckSensorResult.Fail;
+		DataToDB.eSensor2:=E_RegularCheckSensorResult.Fail;
+		DataToDB.sSo_number                    	:= 'Fred';
+		DataToDB.sFaam_id                      	:= 'FB000120-E002-0001';
+		DataToDB.diSo_id                        := 3736;
 		
-		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
-	320://wait done
-		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+		IF fbRegular_Check_Results_DB.M_Upload(stRcResults:=DataToDB) THEN
+			iStep:=320;
 		END_IF
 		
+	320://wait done
+		
+		IF NOT fbRegular_Check_Results_DB.bError THEN//write OK
+		
+			AnalizeIndex:=AnalizeIndex+1;
+			
+			iStep:=330;
+			
+		ELSE//write failed need to write to log
+			;
+		END_IF
 		
 	330://Check if all data in array Analized
 		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
@@ -882,9 +867,10 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	fbSoDuration_DB:FB_SoDuration_DB;
+	
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -928,34 +914,27 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
-		
+	
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.sSo_number                    	:= 'Fred';
+		DataToDB.sFaam_id                      	:= 'FB000120-E002-0001';
+		DataToDB.diSo_id                        := 3736;
 		
-		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
-	320://wait done
-		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+		IF fbSoDuration_DB.M_Upload(stSoDuration:=DataToDB) THEN
+			iStep:=320;
 		END_IF
 		
+	320://wait done
+		
+		IF NOT fbSoDuration_DB.bError THEN//write OK
+		
+			AnalizeIndex:=AnalizeIndex+1;
+			
+			iStep:=330;
+			
+		ELSE//write failed need to write to log
+			;
+		END_IF
 		
 	330://Check if all data in array Analized
 		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
@@ -1004,6 +983,72 @@ CASE iStep OF
 END_CASE]]></ST>
       </Implementation>
     </Method>
+    <Method Name="M_ST_AlarmHistory_Convert" Id="{90234377-5e57-4a9c-9b48-a547d1d556f7}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_AlarmHistory_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionHistory_Convert" Id="{56b298ca-fed2-4f78-8add-9ff8f9eca520}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionHistory_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionReport_Convert" Id="{6448b315-2048-49f6-b778-7e67bf20eea8}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionReport_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionSummary_Convert" Id="{8cecd652-1a50-4b26-88c4-1513f9101c97}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionSummary_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_RegularCheckResults_Convert" Id="{3d691fe0-8452-4cec-baed-830d96336e29}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_RegularCheckResults_Convert : BOOL
+VAR_INPUT
+	input:ST_RegularCheck_Results_DB;
+END_VAR
+VAR_OUTPUT
+	output:ST_RegularCheck_Results;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_SoDuration_Convert" Id="{8efca6c8-584d-46e0-9bd4-7ed0f3c98d6e}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_SoDuration_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_StopCount_Convert" Id="{483d237d-5099-4da3-9f28-7308f5bcf526}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_StopCount_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="M_StopCount" Id="{ce4c351f-2ecd-476b-900a-3eebce8b4087}">
       <Declaration><![CDATA[METHOD M_StopCount : BOOL
 VAR_INPUT
@@ -1036,9 +1081,9 @@ VAR_INST
     //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
     //cbLoad    : UDINT;
 	
-	testTimer:TON;
 	fileName: STRING(255);
 	eStrIndex:DINT;
+	fbStopCount_DB:FB_StopCount_DB;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -1082,186 +1127,27 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		//=====Method 1=====
 		
 		//write DataToDB to DB
-		iStep:=320;
+		DataToDB.sSo_number                    	:= 'Fred';
+		DataToDB.sFaam_id                      	:= 'FB000120-E002-0001';
+		DataToDB.diSo_id                        := 3736;
 		
+		IF fbStopCount_DB.M_Upload(stStopCount:=DataToDB) THEN
+			iStep:=320;
+		END_IF
 		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
 	320://wait done
 		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
+		IF NOT fbStopCount_DB.bError THEN//write OK
+		
+			AnalizeIndex:=AnalizeIndex+1;
 			
-			IF TRUE THEN//write OK
+			iStep:=330;
 			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+		ELSE//write failed need to write to log
+			;
 		END_IF
-		
-		
-	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
-			iStep:=300;//go back
-		ELSE//array data done
-			iStep:=400;//complete this array
-		END_IF
-		
-	400://wait done / remove Head
-	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
-		
-		iStep:=500;
-		
-	500://wait done / check if all data got?
-		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
-			IF stHeader.nCount > 0 THEN
-				iStep:=100;//Go Back
-			ELSE
-				iStep:=600;//finish
-			END_IF
-		END_IF
-	600://reset file
-	
-		fbFileRingBuffer.A_Reset();
-		
-		iStep:=700;
-		
-	700://wait done / close file
-		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
-			
-			fbFileRingBuffer.A_Close();
-			
-			iStep:=800;
-		END_IF
-	800://wait done
-		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
-			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
-			
-			iStep:=0;
-			
-		END_IF
-		
-	
-END_CASE]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_Transmit" Id="{3f82a6cf-6425-4cbb-9c67-aa4f71676386}" FolderPath="New\">
-      <Declaration><![CDATA[METHOD M_Transmit : BOOL
-VAR_INPUT
-	eStrIndex:DINT;
-	udiNovRam_BufferIndex:UDINT;
-	udiFile_Index:UDINT;
-END_VAR
-VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
-	DataToDB:ST_AlarmInfo_DB_save;
-	AnalizeIndex:UDINT;//should be kept by NovRam
-	iStep:INT;
-	i:UDINT;
-	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
-                                             sPathName  := '',
-                                             ePath      := PATH_GENERIC,
-                                             nID        := 1,
-                                             //cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
-                                             bOverwrite := FALSE,
-                                             pWriteBuff := 0,
-                                             cbWriteLen := 0,
-                                             pReadBuff  := 0,
-                                             cbReadLen  := 0,
-                                             tTimeout   := T#1S );
-	bBusy:BOOL;
-	bError:BOOL;
-	nErrID:UDINT;
-	stHeader:ST_FileRBufferHead;
-    //loadData  : ARRAY[0..511] OF BYTE :=[512(0)];
-    //cbLoad    : UDINT;
-	
-	testTimer:TON;
-	fileName: STRING(255);
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[//Config
-fbFileRingBuffer(sPathName:=fileName
-				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
-				,stHeader=>stHeader
-				,cbBuffer:=gvl.arrFileRingBufferSize[eStrIndex]);
-
-
-CASE iStep OF
-	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
-			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
-		END_IF
-	100:// Open file
-		
-		AnalizeIndex:=0;
-		fbFileRingBuffer.A_Open();
-		
-		iStep:=200;
-	200://wait done / read head
-		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
-			
-			fbFileRingBuffer.A_GetHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
-			
-			iStep:=300;
-		END_IF
-	300://wait done / take data from array
-		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
-			
-			DataToDB:=arrDataFromFile[AnalizeIndex];
-			
-			iStep:=310;
-		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
-			iStep:=600;
-		END_IF
-	310:// write to DB
-		//=====Method 1=====
-		
-		//write DataToDB to DB
-		iStep:=320;
-		
-		
-		//=====Method 2=====
-		//write to Csv
-		//Write to DB CSV bulk insert to DB
-		//..........
-	320://wait done
-		
-		//simulate DB process time
-		testTimer(IN:=TRUE,PT:=T#100MS);
-		IF testTimer.Q  THEN
-			testTimer(IN:=FALSE);
-			
-			IF TRUE THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
-		END_IF
-		
 		
 	330://Check if all data in array Analized
 		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex] THEN//not done
@@ -1363,28 +1249,20 @@ END_CASE]]></ST>
       <LineId Id="90" Count="0" />
       <LineId Id="173" Count="1" />
       <LineId Id="68" Count="0" />
-      <LineId Id="376" Count="1" />
       <LineId Id="387" Count="0" />
+      <LineId Id="677" Count="0" />
       <LineId Id="378" Count="0" />
       <LineId Id="586" Count="0" />
       <LineId Id="595" Count="4" />
       <LineId Id="557" Count="0" />
       <LineId Id="575" Count="0" />
       <LineId Id="579" Count="2" />
-      <LineId Id="388" Count="0" />
-      <LineId Id="379" Count="0" />
-      <LineId Id="381" Count="1" />
       <LineId Id="390" Count="0" />
       <LineId Id="455" Count="0" />
-      <LineId Id="466" Count="1" />
-      <LineId Id="459" Count="1" />
-      <LineId Id="462" Count="0" />
       <LineId Id="476" Count="0" />
       <LineId Id="468" Count="7" />
       <LineId Id="463" Count="0" />
-      <LineId Id="458" Count="0" />
       <LineId Id="465" Count="0" />
-      <LineId Id="432" Count="0" />
       <LineId Id="428" Count="0" />
       <LineId Id="437" Count="1" />
       <LineId Id="440" Count="1" />
@@ -1431,6 +1309,7 @@ END_CASE]]></ST>
       <LineId Id="39" Count="1" />
       <LineId Id="80" Count="0" />
       <LineId Id="85" Count="0" />
+      <LineId Id="100" Count="1" />
       <LineId Id="82" Count="0" />
       <LineId Id="86" Count="0" />
       <LineId Id="83" Count="0" />
@@ -1448,35 +1327,125 @@ END_CASE]]></ST>
       <LineId Id="187" Count="2" />
       <LineId Id="185" Count="0" />
       <LineId Id="190" Count="0" />
-      <LineId Id="43" Count="106" />
+      <LineId Id="239" Count="2" />
+      <LineId Id="43" Count="32" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="226" Count="2" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="248" Count="9" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="235" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="86" Count="1" />
+      <LineId Id="93" Count="8" />
+      <LineId Id="104" Count="45" />
       <LineId Id="4" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ProductionReport">
-      <LineId Id="39" Count="113" />
+      <LineId Id="39" Count="39" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="233" Count="1" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="96" Count="9" />
+      <LineId Id="107" Count="45" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ProductionSummary">
-      <LineId Id="39" Count="113" />
+      <LineId Id="39" Count="39" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="194" Count="0" />
+      <LineId Id="231" Count="1" />
+      <LineId Id="195" Count="0" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="191" Count="2" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="96" Count="9" />
+      <LineId Id="107" Count="45" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_RegularCheckResults">
-      <LineId Id="39" Count="113" />
+      <LineId Id="39" Count="35" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="75" Count="3" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="194" Count="3" />
+      <LineId Id="270" Count="1" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="192" Count="1" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="96" Count="9" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_SoDuration">
-      <LineId Id="39" Count="113" />
+      <LineId Id="39" Count="39" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="229" Count="1" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="190" Count="2" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="96" Count="9" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="43" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_AlarmHistory_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_ProductionHistory_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_ProductionReport_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_ProductionSummary_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_RegularCheckResults_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_SoDuration_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FileRingBufferToDB.M_ST_StopCount_Convert">
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_StopCount">
-      <LineId Id="39" Count="113" />
+      <LineId Id="39" Count="39" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="229" Count="3" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="96" Count="9" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="43" />
       <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FileRingBufferToDB.M_Transmit">
-      <LineId Id="153" Count="0" />
-      <LineId Id="41" Count="2" />
-      <LineId Id="154" Count="0" />
-      <LineId Id="44" Count="108" />
-      <LineId Id="39" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -169,6 +169,8 @@ ELSIF structureType=E_StructureType.ProductionHistory THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
 ELSIF structureType=E_StructureType.ProductionReport THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionReport');
+ELSIF structureType=E_StructureType.ProductionSummary THEN
+	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionSummary');
 ELSIF structureType=E_StructureType.SoDuration THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'SoDuration');
 ELSIF structureType=E_StructureType.StopCount THEN
@@ -188,7 +190,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_AlarmInfo_DB_save;
+	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_Production_History_DB_Test;
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -739,6 +741,72 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="M_ST_AlarmHistory_Convert" Id="{5b8cd87c-96ee-4037-a202-d74d22085ccd}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_AlarmHistory_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionHistory_Convert" Id="{68baffc9-f706-47d6-88f8-4abf8842d603}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionHistory_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionReport_Convert" Id="{af148257-03fa-4365-8a2d-22bdd2769cf2}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionReport_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionSummary_Convert" Id="{b22ff7b2-fb36-43d4-a8ad-c66ee5dbbec5}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionSummary_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_RegularCheckResults_Convert" Id="{01020571-a260-43f0-9306-9b35a4d8ba81}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_RegularCheckResults_Convert : BOOL
+VAR_INPUT
+	output:ST_RegularCheck_Results;
+END_VAR
+VAR_OUTPUT
+	input:ST_RegularCheck_Results_DB;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_SoDuration_Convert" Id="{041093b7-486b-4764-8273-d6a2053f8837}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_SoDuration_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_StopCount_Convert" Id="{a101ea81-d579-4034-acb4-b6adc3e24537}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_StopCount_Convert : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="M_StopCount" Id="{a1505196-e5cb-459d-bc10-3909af20d9b6}">
       <Declaration><![CDATA[METHOD M_StopCount : BOOL
 VAR_INPUT
@@ -915,7 +983,9 @@ END_CASE
       <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_GetFileName">
-      <LineId Id="64" Count="15" />
+      <LineId Id="64" Count="5" />
+      <LineId Id="91" Count="1" />
+      <LineId Id="70" Count="9" />
       <LineId Id="49" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionHistory">
@@ -941,6 +1011,27 @@ END_CASE
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_SoDuration">
       <LineId Id="34" Count="75" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_AlarmHistory_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionHistory_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionReport_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionSummary_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_RegularCheckResults_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_SoDuration_Convert">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_StopCount_Convert">
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_StopCount">

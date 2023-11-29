@@ -28,7 +28,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[
 //simulate that Peak Data amount as 500 ms
-repeatTimer(IN:=TRUE,PT:=T#1000MS);
+repeatTimer(IN:=TRUE,PT:=T#300MS);
 
 IF repeatTimer.Q THEN
 	
@@ -36,28 +36,44 @@ IF repeatTimer.Q THEN
 	
 	//simulate Peak save data amount
 	FOR i:=0 TO GVL.Max_IndexNum-1 DO
+		(*
 		IF GVL.fbDataToNovRam[i].M_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
 			writeFailCount:=writeFailCount+1;
 		END_IF
+		*)
+		(*
 		IF GVL.fbDataToNovRam[i].M_ProductionHistory(addData:=ProductionHistoryData_Write) = FALSE THEN
 			writeFailCount2:=writeFailCount2+1;
 		END_IF
+		*)
+		//(*
 		IF GVL.fbDataToNovRam[i].M_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
 			writeFailCount3:=writeFailCount3+1;
 		END_IF
+		//*)
+		(*
+		//write to db failed
 		IF GVL.fbDataToNovRam[i].M_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
 			writeFailCount4:=writeFailCount4+1;
 		END_IF
+		*)
+		(*
+		//write to db failed
 		IF GVL.fbDataToNovRam[i].M_SoDuration(addData:=SoDuration_Write) = FALSE THEN
 			writeFailCount5:=writeFailCount5+1;
 		END_IF
+		*)
+		(*
+		//Failed 需要faamid
 		IF GVL.fbDataToNovRam[i].M_StopCount(addData:=StopCount_Write) = FALSE THEN
 			writeFailCount6:=writeFailCount6+1;
 		END_IF
+		*)
+		(*
 		IF GVL.fbDataToNovRam[i].M_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
 			writeFailCount7:=writeFailCount7+1;
 		END_IF
-		
+		*)
 	END_FOR
 	
 END_IF
@@ -72,16 +88,28 @@ END_IF
       <LineId Id="46" Count="0" />
       <LineId Id="69" Count="0" />
       <LineId Id="43" Count="1" />
+      <LineId Id="213" Count="0" />
       <LineId Id="95" Count="2" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="238" Count="0" />
       <LineId Id="114" Count="2" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="263" Count="0" />
       <LineId Id="147" Count="1" />
       <LineId Id="146" Count="0" />
+      <LineId Id="264" Count="1" />
+      <LineId Id="296" Count="0" />
       <LineId Id="151" Count="1" />
       <LineId Id="150" Count="0" />
+      <LineId Id="266" Count="1" />
+      <LineId Id="320" Count="0" />
       <LineId Id="155" Count="1" />
       <LineId Id="165" Count="0" />
+      <LineId Id="268" Count="1" />
+      <LineId Id="295" Count="0" />
       <LineId Id="159" Count="1" />
       <LineId Id="158" Count="0" />
+      <LineId Id="270" Count="1" />
       <LineId Id="163" Count="1" />
       <LineId Id="162" Count="0" />
       <LineId Id="189" Count="0" />
