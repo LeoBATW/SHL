@@ -986,6 +986,10 @@ END_CASE]]></ST>
     <Method Name="M_ST_AlarmHistory_Convert" Id="{90234377-5e57-4a9c-9b48-a547d1d556f7}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_AlarmHistory_Convert : BOOL
 VAR_INPUT
+	Input:ST_AlarmInfo_DB_save;
+END_VAR
+VAR_OUTPUT
+	Output:ST_AlarmInfo_DB;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -995,6 +999,10 @@ END_VAR
     <Method Name="M_ST_ProductionHistory_Convert" Id="{56b298ca-fed2-4f78-8add-9ff8f9eca520}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_ProductionHistory_Convert : BOOL
 VAR_INPUT
+	Input:ST_Production_History_DB_Test;
+END_VAR
+VAR_OUTPUT
+	Output:ST_Production_History_DB;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -1004,28 +1012,35 @@ END_VAR
     <Method Name="M_ST_ProductionReport_Convert" Id="{6448b315-2048-49f6-b778-7e67bf20eea8}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_ProductionReport_Convert : BOOL
 VAR_INPUT
+	Input:ST_OEE_ProductionReport;
+END_VAR
+VAR_OUTPUT
+	Output:ST_OEE_ProductionReport;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[Output:=Input;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_ST_ProductionSummary_Convert" Id="{8cecd652-1a50-4b26-88c4-1513f9101c97}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_ProductionSummary_Convert : BOOL
 VAR_INPUT
+	Input:ST_OEE_ProductionSummary;
 END_VAR
-]]></Declaration>
+VAR_OUTPUT
+	Output:ST_OEE_ProductionSummary;
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[Output:=Input;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_ST_RegularCheckResults_Convert" Id="{3d691fe0-8452-4cec-baed-830d96336e29}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_RegularCheckResults_Convert : BOOL
 VAR_INPUT
-	input:ST_RegularCheck_Results_DB;
+	Input:ST_RegularCheck_Results;
 END_VAR
 VAR_OUTPUT
-	output:ST_RegularCheck_Results;
+	Output:ST_RegularCheck_Results_DB;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[]]></ST>
@@ -1034,19 +1049,25 @@ END_VAR]]></Declaration>
     <Method Name="M_ST_SoDuration_Convert" Id="{8efca6c8-584d-46e0-9bd4-7ed0f3c98d6e}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_SoDuration_Convert : BOOL
 VAR_INPUT
+	Input:ST_SoDuration;
 END_VAR
-]]></Declaration>
+VAR_OUTPUT
+	Output:ST_SoDuration;
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[Output:=Input;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_ST_StopCount_Convert" Id="{483d237d-5099-4da3-9f28-7308f5bcf526}" FolderPath="Sub\">
       <Declaration><![CDATA[METHOD M_ST_StopCount_Convert : BOOL
 VAR_INPUT
+	Input:ST_StopCount;
 END_VAR
-]]></Declaration>
+VAR_OUTPUT
+	Output:ST_StopCount;
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[]]></ST>
+        <ST><![CDATA[Output:=Input;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_StopCount" Id="{ce4c351f-2ecd-476b-900a-3eebce8b4087}">

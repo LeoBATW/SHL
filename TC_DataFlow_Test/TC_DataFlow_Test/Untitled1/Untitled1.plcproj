@@ -111,12 +111,6 @@
     <Compile Include="POUs\DataFlow\FB_NovRamToFileRingBuffer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataFlow\PG_AddData.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\DataFlow\PG_SaveData.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\DB\FB_AlarmHistory_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -142,6 +136,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\PG_AddData.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\PG_SaveData.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Task_Consumer.TcTTO">
