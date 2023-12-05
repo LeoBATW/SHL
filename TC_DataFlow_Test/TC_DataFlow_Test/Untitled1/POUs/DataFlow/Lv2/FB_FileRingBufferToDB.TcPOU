@@ -111,7 +111,7 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-	
+		
 		IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=DataToDB) THEN
 			iStep:=320;
 		END_IF
@@ -439,22 +439,22 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-	
+		
 		IF fbOEE_ProductionReport_DB.M_Upload(stOeeProductionReport:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-			IF NOT fbOEE_ProductionReport_DB.bError THEN//write OK
+		IF NOT fbOEE_ProductionReport_DB.bError THEN//write OK
+		
+			AnalizeIndex:=AnalizeIndex+1;
 			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+			iStep:=330;
+			
+		ELSE//write failed need to write to log
+			;
+		END_IF
 		
 		
 	330://Check if all data in array Analized
@@ -1264,8 +1264,9 @@ END_CASE]]></ST>
       <LineId Id="173" Count="1" />
       <LineId Id="68" Count="0" />
       <LineId Id="387" Count="0" />
-      <LineId Id="748" Count="0" />
-      <LineId Id="579" Count="2" />
+      <LineId Id="579" Count="0" />
+      <LineId Id="784" Count="0" />
+      <LineId Id="580" Count="1" />
       <LineId Id="390" Count="0" />
       <LineId Id="455" Count="0" />
       <LineId Id="476" Count="0" />

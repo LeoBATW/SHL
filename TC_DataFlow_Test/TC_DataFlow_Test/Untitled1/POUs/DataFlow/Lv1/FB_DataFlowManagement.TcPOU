@@ -13,24 +13,74 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
-	i:UDINT;k:UDINT;
+	lrFileUseRate: ARRAY[0..6] OF LREAL;
+	lrRamUseRate:ARRAY[0..6] OF LREAL;
 	
 	//Data To NovRam
 	fbDataToNovRam : FB_DataToNovRam;
-	
 	//NovRam To FileRingBuffer
 	fbNovRamToFileRingBuffer:ARRAY [0..6] OF ARRAY[0..GVL.NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	//fbNovRamToFileRingBuffer_AlarmHistory:ARRAY [0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	//fbNovRamToFileRingBuffer_ProductionHistory:ARRAY [0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	
 	//FileRingBuffer To DataBase
 	fbFileRingBufferToDB:ARRAY [0..6] OF ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY[0..GVL.FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
-	//fbFileRingBufferToDB_AlarmHistory:ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
-	//fbFileRingBufferToDB_ProductionHistory:ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//Data to NovRam
+      <ST><![CDATA[//FB cyclic
+M_CyclicUpdate();
+
+//Calc Use Rate
+M_CalcUseRate(lrFileUseRate:=lrFileUseRate,lrRamUseRate:=lrRamUseRate);
+
+
+]]></ST>
+    </Implementation>
+    <Method Name="M_CalcUseRate" Id="{b1b25544-751d-4a1e-a1ef-1e90150db345}">
+      <Declaration><![CDATA[METHOD M_CalcUseRate : BOOL
+VAR_IN_OUT
+	lrFileUseRate: ARRAY[0..6] OF LREAL;
+	lrRamUseRate:ARRAY[0..6] OF LREAL;
+END_VAR
+VAR
+	iStruType:UDINT;
+	iRamIndex:UDINT;iFileIndex:UDINT;
+	
+	udiRamFullCount:UDINT;
+	udiFileFullCount:UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR iStruType:=0 TO 6 DO
+	
+	udiRamFullCount:=0;
+	udiFileFullCount:=0;
+	
+	FOR iRamIndex:=0 TO GVL.NovRamBufferRatio-1 DO
+		
+		IF NovRamData.arrNovRam_Status[iStruType].RowDataLocked[iRamIndex] THEN//ram
+			udiRamFullCount:=udiRamFullCount+1;
+		END_IF
+		
+		FOR iFileIndex:=0 TO GVL.FileRingBufferRatio-1 DO//file
+			IF NovRamData.arrFileRingBuffer_Status[iStruType].bFileFull[iRamIndex][iFileIndex] = TRUE THEN
+				udiFileFullCount:=udiFileFullCount+1;
+			END_IF
+		END_FOR
+	END_FOR
+	
+	lrFileUseRate[iStruType]:=UDINT_TO_LREAL(udiFileFullCount) 
+								/ (UDINT_TO_LREAL(GVL.NovRamBufferRatio) * UDINT_TO_LREAL(GVL.FileRingBufferRatio));
+	lrRamUseRate[iStruType]:=UDINT_TO_LREAL(udiRamFullCount) / UDINT_TO_LREAL(GVL.NovRamBufferRatio);
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_CyclicUpdate" Id="{e14d3aed-0555-49d4-9fa9-9256ac3db4b1}">
+      <Declaration><![CDATA[METHOD M_CyclicUpdate : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i:UDINT;k:UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Data to NovRam
 fbDataToNovRam(NovRamData:=NovRamData);
 
 
@@ -60,13 +110,24 @@ FOR i:=0 TO gvl.NovRamBufferRatio-1 DO
 	END_FOR
 END_FOR
 ]]></ST>
-    </Implementation>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_DataFlowManagement">
-      <LineId Id="63" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="35" Count="25" />
+      <LineId Id="99" Count="0" />
       <LineId Id="9" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="141" Count="1" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="93" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_CalcUseRate">
+      <LineId Id="8" Count="20" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_CyclicUpdate">
+      <LineId Id="6" Count="28" />
+      <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
