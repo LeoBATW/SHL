@@ -20,7 +20,7 @@
     <Compile Include="DUTs\DataFlowManagement\ST_NovRam.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\DataFlowManagement\ST_NovRam_SubST\E_StructureType.TcDUT">
+    <Compile Include="DUTs\DataFlowManagement\ST_NovRam_SubST\E_DB_StructureType.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\DataFlowManagement\ST_NovRam_SubST\ST_NovRam_Status.TcDUT">

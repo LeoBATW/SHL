@@ -9,19 +9,19 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF dataType = E_StructureType.AlarmHistory THEN
+      <ST><![CDATA[IF dataType = E_DB_StructureType.AlarmHistory THEN
 	M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.ProductionHistory THEN
+ELSIF dataType = E_DB_StructureType.ProductionHistory THEN
 	M_ProductionHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.ProductionReport THEN
+ELSIF dataType = E_DB_StructureType.ProductionReport THEN
 	M_ProductionReport(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.ProductionSummary THEN
+ELSIF dataType = E_DB_StructureType.ProductionSummary THEN
 	M_ProductionSummary(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.SoDuration THEN
+ELSIF dataType = E_DB_StructureType.SoDuration THEN
 	M_SoDuration(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.StopCount THEN
+ELSIF dataType = E_DB_StructureType.StopCount THEN
 	M_StopCount(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
-ELSIF dataType = E_StructureType.RegularCheckResults THEN
+ELSIF dataType = E_DB_StructureType.RegularCheckResults THEN
 	M_RegularCheckResults(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
 END_IF
 
@@ -37,7 +37,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;//small
 	DataToDB:ST_AlarmInfo_DB;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -46,7 +46,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.AlarmHistory], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -66,7 +66,7 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.AlarmHistory;
+eStrIndex:=E_DB_StructureType.AlarmHistory;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -187,19 +187,19 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF structureType=E_StructureType.AlarmHistory THEN
+        <ST><![CDATA[IF structureType=E_DB_StructureType.AlarmHistory THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'AlarmHistory');
-ELSIF structureType=E_StructureType.ProductionHistory THEN
+ELSIF structureType=E_DB_StructureType.ProductionHistory THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionHistory');
-ELSIF structureType=E_StructureType.ProductionReport THEN
+ELSIF structureType=E_DB_StructureType.ProductionReport THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionReport');
-ELSIF structureType=E_StructureType.ProductionSummary THEN
+ELSIF structureType=E_DB_StructureType.ProductionSummary THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'ProductionSummary');
-ELSIF structureType=E_StructureType.SoDuration THEN
+ELSIF structureType=E_DB_StructureType.SoDuration THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'SoDuration');
-ELSIF structureType=E_StructureType.StopCount THEN
+ELSIF structureType=E_DB_StructureType.StopCount THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'StopCount');
-ELSIF structureType=E_StructureType.RegularCheckResults THEN
+ELSIF structureType=E_DB_StructureType.RegularCheckResults THEN
 	tempString:=CONCAT(gvl.arrfileFolder[structureType],'RegularCheckResults');
 END_IF
 
@@ -218,7 +218,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_PHI_GroupData_DB;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.ProductionHistory]-1] OF ST_PHI_GroupData_DB;//small
 	DataToDB:ST_PHI_GroupData_DB;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -227,7 +227,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionHistory], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.ProductionHistory], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -250,7 +250,7 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionHistory;
+eStrIndex:=E_DB_StructureType.ProductionHistory;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -367,7 +367,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;//small
 	DataToDB:ST_OEE_ProductionReport;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -376,7 +376,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionReport], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.ProductionReport], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -396,7 +396,7 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionReport;
+eStrIndex:=E_DB_StructureType.ProductionReport;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -511,7 +511,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;//small
 	DataToDB:ST_OEE_ProductionSummary;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -520,7 +520,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -541,7 +541,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionSummary;
+eStrIndex:=E_DB_StructureType.ProductionSummary;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -656,7 +656,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results;//small
 	DataToDB:ST_RegularCheck_Results;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -665,7 +665,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.RegularCheckResults], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.RegularCheckResults], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -686,7 +686,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.RegularCheckResults;
+eStrIndex:=E_DB_StructureType.RegularCheckResults;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -800,7 +800,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.SoDuration]-1] OF ST_SoDuration;//small
 	DataToDB:ST_SoDuration;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -809,7 +809,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.ProductionSummary], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -830,7 +830,7 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.SoDuration;
+eStrIndex:=E_DB_StructureType.SoDuration;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
@@ -1073,7 +1073,7 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 END_VAR
 VAR_INST
-	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;//small
+	arrDataFromFile:ARRAY[0..GVL.arrArrayLength[E_DB_StructureType.StopCount]-1] OF ST_StopCount;//small
 	DataToDB:ST_StopCount;//large
 	AnalizeIndex:UDINT;//should be kept by NovRam
 	iStep:INT;
@@ -1082,7 +1082,7 @@ VAR_INST
                                              sPathName  := '',
                                              ePath      := PATH_GENERIC,
                                              nID        := 1,
-                                             cbBuffer   := gvl.arrFileRingBufferSize[E_StructureType.StopCount], //5MB(5*10^6Bytes)
+                                             cbBuffer   := gvl.arrFileRingBufferSize[E_DB_StructureType.StopCount], //5MB(5*10^6Bytes)
                                              bOverwrite := FALSE,
                                              pWriteBuff := 0,
                                              cbWriteLen := 0,
@@ -1102,7 +1102,7 @@ VAR_INST
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.StopCount;
+eStrIndex:=E_DB_StructureType.StopCount;
 
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID

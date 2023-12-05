@@ -19,7 +19,7 @@ VAR
 	FB_PLCDBCmdEvt_insertAlarmHistory 	: FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
 	
 	// Var
-	stPara_all_alarm_history 			: ARRAY[0..9] OF ST_ExpParameter ;
+	stPara_all_alarm_history 			: ARRAY[0..17] OF ST_ExpParameter ;
 	iErrStep :INT := 9000;
 	iAHStep 							: INT ;
 	
@@ -157,7 +157,7 @@ stPara_all_alarm_history[3].nParaSize := SIZEOF(ST_AlarmInfo_DB.iMsgClass) ;
 stPara_all_alarm_history[4].sParaName := 'di_MsgNumber' ;
 stPara_all_alarm_history[4].eParaType := E_ExpParameterType.Int32 ;
 stPara_all_alarm_history[4].nParaSize := SIZEOF(ST_AlarmInfo_DB.diMsgNumber) ;
-(*
+
 stPara_all_alarm_history[5].sParaName := 'wstr_Var1' ;
 stPara_all_alarm_history[5].eParaType := E_ExpParameterType.WSTRING_ ;
 stPara_all_alarm_history[5].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar1) ;
@@ -188,22 +188,22 @@ stPara_all_alarm_history[11].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar7) ;
 stPara_all_alarm_history[12].sParaName := 'wstr_Var8' ;
 stPara_all_alarm_history[12].eParaType := E_ExpParameterType.WSTRING_ ;
 stPara_all_alarm_history[12].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsVar8) ;
-*)
-stPara_all_alarm_history[5].sParaName := 'str_TimeString' ;
-stPara_all_alarm_history[5].eParaType := E_ExpParameterType.STRING_ ;
-stPara_all_alarm_history[5].nParaSize := SIZEOF(ST_AlarmInfo_DB.sTimeString) ;
-stPara_all_alarm_history[6].sParaName := 'wstr_MsgText' ;
-stPara_all_alarm_history[6].eParaType := E_ExpParameterType.WSTRING_ ;
-stPara_all_alarm_history[6].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsMsgText) ;
-stPara_all_alarm_history[7].sParaName := 'str_PLC' ;
-stPara_all_alarm_history[7].eParaType := E_ExpParameterType.STRING_ ;
-stPara_all_alarm_history[7].nParaSize := SIZEOF(ST_AlarmInfo_DB.sPLC) ;
-stPara_all_alarm_history[8].sParaName := 'wstr_equipment' ;
-stPara_all_alarm_history[8].eParaType := E_ExpParameterType.WSTRING_ ;  
-stPara_all_alarm_history[8].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsEquipment) ;             
-stPara_all_alarm_history[9].sParaName := 'str_faam_id' ;
-stPara_all_alarm_history[9].eParaType := E_ExpParameterType.STRING_ ;
-stPara_all_alarm_history[9].nParaSize := SIZEOF(ST_AlarmInfo_DB.sFaam_id) ; 
+
+stPara_all_alarm_history[13].sParaName := 'str_TimeString' ;
+stPara_all_alarm_history[13].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[13].nParaSize := SIZEOF(ST_AlarmInfo_DB.sTimeString) ;
+stPara_all_alarm_history[14].sParaName := 'wstr_MsgText' ;
+stPara_all_alarm_history[14].eParaType := E_ExpParameterType.WSTRING_ ;
+stPara_all_alarm_history[14].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsMsgText) ;
+stPara_all_alarm_history[15].sParaName := 'str_PLC' ;
+stPara_all_alarm_history[15].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[15].nParaSize := SIZEOF(ST_AlarmInfo_DB.sPLC) ;
+stPara_all_alarm_history[16].sParaName := 'wstr_equipment' ;
+stPara_all_alarm_history[16].eParaType := E_ExpParameterType.WSTRING_ ;  
+stPara_all_alarm_history[16].nParaSize := SIZEOF(ST_AlarmInfo_DB.wsEquipment) ;             
+stPara_all_alarm_history[17].sParaName := 'str_faam_id' ;
+stPara_all_alarm_history[17].eParaType := E_ExpParameterType.STRING_ ;
+stPara_all_alarm_history[17].nParaSize := SIZEOF(ST_AlarmInfo_DB.sFaam_id) ; 
 ]]></ST>
       </Implementation>
     </Method>

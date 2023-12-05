@@ -10,26 +10,26 @@ END_VAR
     <Implementation>
       <ST><![CDATA[//NovRam to File
 FOR i:= 0 TO GVL.NovRamBufferRatio-1 DO
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.AlarmHistory][i](udiNovRamIndex:=i,dataType:=E_StructureType.AlarmHistory);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.ProductionHistory][i](udiNovRamIndex:=i,dataType:=E_StructureType.ProductionHistory);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.ProductionReport][i](udiNovRamIndex:=i,dataType:=E_StructureType.ProductionReport);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.ProductionSummary][i](udiNovRamIndex:=i,dataType:=E_StructureType.ProductionSummary);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.SoDuration][i](udiNovRamIndex:=i,dataType:=E_StructureType.SoDuration);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.StopCount][i](udiNovRamIndex:=i,dataType:=E_StructureType.StopCount);
-	GVL.fbNovRamToFileRingBuffer[E_StructureType.RegularCheckResults][i](udiNovRamIndex:=i,dataType:=E_StructureType.RegularCheckResults);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.AlarmHistory][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.AlarmHistory);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionHistory][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionHistory);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionReport][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionReport);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionSummary][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionSummary);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.SoDuration][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.SoDuration);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.StopCount][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.StopCount);
+	GVL.fbNovRamToFileRingBuffer[E_DB_StructureType.RegularCheckResults][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.RegularCheckResults);
 	
 END_FOR
 //File to DB
 FOR i:=0 TO gvl.NovRamBufferRatio-1 DO
 	FOR k:=0 TO GVL.FileRingBufferRatio-1 DO
 		
-		gvl.fbFileRingBufferToDB[E_StructureType.AlarmHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.AlarmHistory);
-		gvl.fbFileRingBufferToDB[E_StructureType.ProductionHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.ProductionHistory);
-		gvl.fbFileRingBufferToDB[E_StructureType.ProductionReport][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.ProductionReport);
-		gvl.fbFileRingBufferToDB[E_StructureType.ProductionSummary][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.ProductionSummary);
-		gvl.fbFileRingBufferToDB[E_StructureType.SoDuration][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.SoDuration);
-		gvl.fbFileRingBufferToDB[E_StructureType.StopCount][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.StopCount);
-		gvl.fbFileRingBufferToDB[E_StructureType.RegularCheckResults][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_StructureType.RegularCheckResults);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.AlarmHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.AlarmHistory);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.ProductionHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionHistory);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.ProductionReport][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionReport);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.ProductionSummary][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionSummary);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.SoDuration][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.SoDuration);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.StopCount][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.StopCount);
+		gvl.fbFileRingBufferToDB[E_DB_StructureType.RegularCheckResults][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.RegularCheckResults);
 		
 	END_FOR
 END_FOR

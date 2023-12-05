@@ -32,7 +32,7 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.AlarmHistory;
+eStrIndex:=E_DB_StructureType.AlarmHistory;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -75,7 +75,7 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionHistory;
+eStrIndex:=E_DB_StructureType.ProductionHistory;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -116,7 +116,7 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionReport;
+eStrIndex:=E_DB_StructureType.ProductionReport;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -158,7 +158,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.ProductionSummary;
+eStrIndex:=E_DB_StructureType.ProductionSummary;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -200,7 +200,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.RegularCheckResults;
+eStrIndex:=E_DB_StructureType.RegularCheckResults;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -241,7 +241,7 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.SoDuration;
+eStrIndex:=E_DB_StructureType.SoDuration;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
@@ -414,7 +414,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
-eStrIndex:=E_StructureType.StopCount;
+eStrIndex:=E_DB_StructureType.StopCount;
 udiNowRowIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex;
 udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 
