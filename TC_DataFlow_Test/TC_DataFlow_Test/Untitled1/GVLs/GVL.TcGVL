@@ -32,14 +32,14 @@ VAR_GLOBAL CONSTANT//NovRam Management
 	];
 	
 	//NovRam中Array數量
-	NovRamBufferRatio:UDINT:=1;
+	NovRamBufferRatio:UDINT:=3;
 	//arrNovRamBufferRatio:ARRAY [0..1] OF UDINT:=[
 	//3,//Alarm History
 	//3//Production History
 	//];
 	
 	//單一NovRam Array對應的File數量
-	FileRingBufferRatio:UDINT:=1;
+	FileRingBufferRatio:UDINT:=3;
 	//arrFileRingBufferRatio:ARRAY[0..1] OF UDINT:=[
 	//10,//Alarm History
 	//10//Production History
@@ -58,26 +58,8 @@ VAR_GLOBAL CONSTANT//NovRam Management
 	
 END_VAR
 
-//NovRam
-VAR_GLOBAL RETAIN
-	NovRamData:ST_NovRam;
-END_VAR
-
 VAR_GLOBAL
-	
-	//Data To NovRam
-	fbDataToNovRam:ARRAY[0..Max_IndexNum-1] OF FB_DataToNovRam;//模擬全部Index添加資料用
-	//NovRam To FileRingBuffer
-	fbNovRamToFileRingBuffer:ARRAY [0..6] OF ARRAY[0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	//fbNovRamToFileRingBuffer_AlarmHistory:ARRAY [0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	//fbNovRamToFileRingBuffer_ProductionHistory:ARRAY [0..NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
-	
-	//FileRingBuffer To DataBase
-	fbFileRingBufferToDB:ARRAY [0..6] OF ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
-	//fbFileRingBufferToDB_AlarmHistory:ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
-	//fbFileRingBufferToDB_ProductionHistory:ARRAY [0..NovRamBufferRatio-1] OF ARRAY[0..FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
-END_VAR
-
-]]></Declaration>
+	fbDataFlowManagement:FB_DataFlowManagement;
+END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

@@ -13,8 +13,10 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	i:UDINT;k:UDINT;
+	
 	//Data To NovRam
-	fbDataToNovRam:ARRAY[0..GVL.Max_IndexNum-1] OF FB_DataToNovRam;//模擬全部Index添加資料用
+	fbDataToNovRam : FB_DataToNovRam;
 	
 	//NovRam To FileRingBuffer
 	fbNovRamToFileRingBuffer:ARRAY [0..6] OF ARRAY[0..GVL.NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
@@ -28,9 +30,42 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[//Data to NovRam
+fbDataToNovRam(NovRamData:=NovRamData);
+
+
+//NovRam to File
+FOR i:= 0 TO GVL.NovRamBufferRatio-1 DO
+	fbNovRamToFileRingBuffer[E_DB_StructureType.AlarmHistory][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.AlarmHistory,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionHistory][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionHistory,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionReport][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionReport,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.ProductionSummary][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.ProductionSummary,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.SoDuration][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.SoDuration,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.StopCount][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.StopCount,NovRamData:=NovRamData);
+	fbNovRamToFileRingBuffer[E_DB_StructureType.RegularCheckResults][i](udiNovRamIndex:=i,dataType:=E_DB_StructureType.RegularCheckResults,NovRamData:=NovRamData);
+	
+END_FOR
+//File to DB
+FOR i:=0 TO gvl.NovRamBufferRatio-1 DO
+	FOR k:=0 TO GVL.FileRingBufferRatio-1 DO
+		
+		fbFileRingBufferToDB[E_DB_StructureType.AlarmHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.AlarmHistory,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.ProductionHistory][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionHistory,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.ProductionReport][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionReport,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.ProductionSummary][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.ProductionSummary,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.SoDuration][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.SoDuration,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.StopCount][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.StopCount,NovRamData:=NovRamData);
+		fbFileRingBufferToDB[E_DB_StructureType.RegularCheckResults][i][k](udiNovRam_BufferIndex:=i,udiFile_Index:=k,dataType:=E_DB_StructureType.RegularCheckResults,NovRamData:=NovRamData);
+		
+	END_FOR
+END_FOR
+]]></ST>
     </Implementation>
     <LineIds Name="FB_DataFlowManagement">
+      <LineId Id="63" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="35" Count="25" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

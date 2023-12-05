@@ -2,7 +2,7 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.29">
 	<DataTypes>
 		<DataType>
-			<Name GUID="{19DD6B9B-DFC9-2777-0193-4153CFAF687D}" AutoDeleteType="true">ST_NovRam_Status</Name>
+			<Name GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}" AutoDeleteType="true">ST_NovRam_Status</Name>
 			<BitSize>96</BitSize>
 			<SubItem>
 				<Name>nowRowIndex</Name>
@@ -21,28 +21,28 @@
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
-				<BitSize>8</BitSize>
+				<BitSize>24</BitSize>
 				<BitOffs>64</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{C66F1D81-E675-3869-BD29-572A2A58A9D5}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
-			<BitSize>64</BitSize>
+			<Name GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
+			<BitSize>192</BitSize>
 			<SubItem>
 				<Name>bFileFull</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[9]]></Comment>
-				<BitSize>8</BitSize>
+				<BitSize>72</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -50,11 +50,11 @@
 				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[3]]></Comment>
-				<BitSize>32</BitSize>
-				<BitOffs>32</BitOffs>
+				<BitSize>96</BitSize>
+				<BitOffs>96</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -740,11 +740,11 @@ X64 size: 1064 bytes]]></Comment>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{B73C7AB9-617F-0EFE-3E44-2241B6538695}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>1340352</BitSize>
+			<Name GUID="{5E892DE3-E0C7-5067-DDBF-6077DA49D557}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>4019648</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
-				<Type GUID="{19DD6B9B-DFC9-2777-0193-4153CFAF687D}">ST_NovRam_Status</Type>
+				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
@@ -756,13 +756,13 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>arrFileRingBuffer_Status</Name>
-				<Type GUID="{C66F1D81-E675-3869-BD29-572A2A58A9D5}">ST_FileRingBuffer_Status</Type>
+				<Type GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}">ST_FileRingBuffer_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[FileRingBuffer_Status:ST_FileRingBuffer_Status;]]></Comment>
-				<BitSize>448</BitSize>
+				<BitSize>1344</BitSize>
 				<BitOffs>672</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -770,99 +770,99 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 				<Type GUID="{66ACB3D4-4616-F0B2-B7C7-17A57F31ACBE}">ST_AlarmInfo_DB_save</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[Compressed DATA]]></Comment>
-				<BitSize>213120</BitSize>
-				<BitOffs>1152</BitOffs>
+				<BitSize>639360</BitSize>
+				<BitOffs>2048</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionHistory</Name>
 				<Type GUID="{F8B80397-1CE5-F71D-5C4A-0D0ACC07B8CA}">ST_PHI_GroupData_DB</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>255360</BitSize>
-				<BitOffs>214272</BitOffs>
+				<BitSize>766080</BitSize>
+				<BitOffs>641408</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionReport</Name>
 				<Type GUID="{22782B45-929E-0134-66DA-B4B1446B6973}">ST_OEE_ProductionReport</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>41280</BitSize>
-				<BitOffs>469632</BitOffs>
+				<BitSize>123840</BitSize>
+				<BitOffs>1407488</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionSummary</Name>
 				<Type GUID="{5C5BB7B8-FCAA-C382-752A-82786A6E3ADC}">ST_OEE_ProductionSummary</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>35520</BitSize>
-				<BitOffs>510912</BitOffs>
+				<BitSize>106560</BitSize>
+				<BitOffs>1531328</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>SoDuration</Name>
 				<Type GUID="{F5DFFFA1-95F8-7A9F-1409-672216FAC6D0}">ST_SoDuration</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>504000</BitSize>
-				<BitOffs>546432</BitOffs>
+				<BitSize>1512000</BitSize>
+				<BitOffs>1637888</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>StopCount</Name>
 				<Type GUID="{87C8FF85-1AF0-02B5-1248-D47BD3A58298}">ST_StopCount</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>151680</BitSize>
-				<BitOffs>1050432</BitOffs>
+				<BitSize>455040</BitSize>
+				<BitOffs>3149888</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
 				<Type GUID="{C509B653-D9A9-FBE4-C5CA-A58255E1FCDE}">ST_RegularCheck_Results</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>1</Elements>
+					<Elements>3</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>138240</BitSize>
-				<BitOffs>1202112</BitOffs>
+				<BitSize>414720</BitSize>
+				<BitOffs>3604928</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
@@ -889,8 +889,8 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Vars VarGrpType="8" AreaNo="4">
 						<Name>Task_Consumer Retains</Name>
 						<Var>
-							<Name>GVL.NovRamData</Name>
-							<Type GUID="{B73C7AB9-617F-0EFE-3E44-2241B6538695}">ST_NovRam</Type>
+							<Name>GVL.fbDataFlowManagement.NovRamData</Name>
+							<Type GUID="{5E892DE3-E0C7-5067-DDBF-6077DA49D557}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>

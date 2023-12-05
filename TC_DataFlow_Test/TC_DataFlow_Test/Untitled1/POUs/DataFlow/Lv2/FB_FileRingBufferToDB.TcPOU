@@ -7,7 +7,9 @@ VAR_INPUT
 	udiFile_Index:UDINT;
 	dataType:DINT;
 END_VAR
-]]></Declaration>
+VAR_IN_OUT
+	NovRamData:ST_NovRam;
+END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF dataType = E_DB_StructureType.AlarmHistory THEN
 	M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
@@ -76,7 +78,7 @@ fbAlarmHistory_DB(udiDBID:=1);
 
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -163,7 +165,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -261,7 +263,7 @@ fbProductionHistoryInspection_DB(udiDBID:=1);
 
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -348,7 +350,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -404,7 +406,7 @@ fbFileRingBuffer(sPathName:=fileName
 				
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -492,7 +494,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -549,7 +551,7 @@ fbFileRingBuffer(sPathName:=fileName
 				
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -637,7 +639,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -694,7 +696,7 @@ fbFileRingBuffer(sPathName:=fileName
 				
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -781,7 +783,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -838,7 +840,7 @@ fbFileRingBuffer(sPathName:=fileName
 				
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -925,7 +927,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			
@@ -1110,7 +1112,7 @@ fbFileRingBuffer(sPathName:=fileName
 				
 CASE iStep OF
 	0://check if file full 
-		IF gvl.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 		THEN
 			
 			fileName:=M_GetFileName(structureType:=eStrIndex
@@ -1197,7 +1199,7 @@ CASE iStep OF
 	800://wait done
 		IF NOT fbFileRingBuffer.bBusy AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index]:=FALSE;
 			
 			iStep:=0;
 			

@@ -12,6 +12,7 @@ END_VAR
 VAR
 END_VAR
 VAR_IN_OUT
+	NovRamData:ST_NovRam;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF dataType = E_DB_StructureType.AlarmHistory THEN
@@ -80,15 +81,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -103,7 +104,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1 DO 
-				WriteData[i] := GVL.NovRamData.AlarmHistory[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.AlarmHistory[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -130,7 +131,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -138,12 +139,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.arrFileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.arrFileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.arrFileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.arrFileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -230,15 +231,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -253,7 +254,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionHistory]-1 DO 
-				WriteData[i] := GVL.NovRamData.ProductionHistory[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.ProductionHistory[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -280,7 +281,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -288,12 +289,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -346,15 +347,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -369,7 +370,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionReport]-1 DO 
-				WriteData[i] := GVL.NovRamData.ProductionReport[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.ProductionReport[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -396,7 +397,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -404,12 +405,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -461,15 +462,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -484,7 +485,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionSummary]-1 DO 
-				WriteData[i] := GVL.NovRamData.ProductionSummary[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.ProductionSummary[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -511,7 +512,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -519,12 +520,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -577,15 +578,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -600,7 +601,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.RegularCheckResults]-1 DO 
-				WriteData[i] := GVL.NovRamData.RegularCheckResults[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.RegularCheckResults[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -627,7 +628,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -635,12 +636,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -692,15 +693,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -715,7 +716,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.SoDuration]-1 DO 
-				WriteData[i] := GVL.NovRamData.SoDuration[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.SoDuration[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -742,7 +743,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -750,12 +751,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
@@ -807,15 +808,15 @@ fbFileRingBuffer(sPathName:=fileName
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
-		tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 		THEN
 			//
 			fileName:=M_GetFileName(structureType:=eStrIndex
 									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
 									
 			iStep:=1;
 		END_IF
@@ -830,7 +831,7 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.StopCount]-1 DO 
-				WriteData[i] := GVL.NovRamData.StopCount[udiNovRamIndex][i];
+				WriteData[i] := NovRamData.StopCount[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
@@ -857,7 +858,7 @@ CASE iStep OF
 	4://Wait Done(file still has space)
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=FALSE;
 			
 			iStep:=0;
 		END_IF
@@ -865,12 +866,12 @@ CASE iStep OF
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
 			//Lock now file
-			//gvl.NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + gvl.NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
-			tempFileIndex:=GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
+			//NovRamData.FileRingBuffer_Status.bFileFull[(gvl.FileRingBufferRatio * udiNovRamIndex) + NovRamData.FileRingBuffer_Status.nowFileIndex[udiNovRamIndex]]:=TRUE;
+			tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex]:=TRUE;
 			
 			//Move to next FileIndex
-			GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((GVL.NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
+			NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]:=((NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]+1) MOD GVL.FileRingBufferRatio);
 			
 			iStep:=0;
 			
