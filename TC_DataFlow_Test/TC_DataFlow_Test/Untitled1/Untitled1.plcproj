@@ -102,37 +102,40 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataFlow\FB_DataToNovRam.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv1\FB_DataFlowManagement.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataFlow\FB_FileRingBufferToDB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv2\FB_DataToNovRam.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DataFlow\FB_NovRamToFileRingBuffer.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv2\FB_FileRingBufferToDB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_AlarmHistory_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv2\FB_NovRamToFileRingBuffer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_OEE_ProductionReport_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_AlarmHistory_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_OEE_ProductionSummary_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_OEE_ProductionReport_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_ProductionHistoryInspection_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_OEE_ProductionSummary_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_Regular_Check_Results_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_ProductionHistoryInspection_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_SoDuration_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_Regular_Check_Results_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\FB_StopCount_DB.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_SoDuration_DB.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\DB\Useless\FB_DataUpload.TcPOU">
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\FB_StopCount_DB.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\DataFlow\Lv3%28DB%29\Useless\FB_DataUpload.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
@@ -154,9 +157,11 @@
     <Folder Include="DUTs\DataFlowManagement\ST_NovRam_SubST" />
     <Folder Include="DUTs\PHI" />
     <Folder Include="GVLs" />
-    <Folder Include="POUs\DB" />
+    <Folder Include="POUs\DataFlow\Lv1" />
+    <Folder Include="POUs\DataFlow\Lv2" />
+    <Folder Include="POUs\DataFlow\Lv3%28DB%29" />
+    <Folder Include="POUs\DataFlow\Lv3%28DB%29\Useless" />
     <Folder Include="POUs\DataFlow" />
-    <Folder Include="POUs\DB\Useless" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>

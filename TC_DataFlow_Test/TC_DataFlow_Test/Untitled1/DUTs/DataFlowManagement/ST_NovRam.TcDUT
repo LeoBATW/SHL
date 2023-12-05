@@ -12,14 +12,14 @@ STRUCT
 	
 	
 	
-	//DATA
+	//Compressed DATA
 	AlarmHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
-	ProductionHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_Production_History_DB_Test;
+	ProductionHistory:ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_PHI_GroupData_DB;
 	ProductionReport:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;
 	ProductionSummary:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;
 	SoDuration:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;
 	StopCount:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;
-	RegularCheckResults:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
+	RegularCheckResults:ARRAY [0..GVL.NovRamBufferRatio-1]OF ARRAY [0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results;
 	
 
 END_STRUCT

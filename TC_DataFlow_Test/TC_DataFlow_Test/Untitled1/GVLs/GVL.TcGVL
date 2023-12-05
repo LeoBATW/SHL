@@ -32,14 +32,14 @@ VAR_GLOBAL CONSTANT//NovRam Management
 	];
 	
 	//NovRam中Array數量
-	NovRamBufferRatio:UDINT:=3;
+	NovRamBufferRatio:UDINT:=1;
 	//arrNovRamBufferRatio:ARRAY [0..1] OF UDINT:=[
 	//3,//Alarm History
 	//3//Production History
 	//];
 	
 	//單一NovRam Array對應的File數量
-	FileRingBufferRatio:UDINT:=3;
+	FileRingBufferRatio:UDINT:=1;
 	//arrFileRingBufferRatio:ARRAY[0..1] OF UDINT:=[
 	//10,//Alarm History
 	//10//Production History

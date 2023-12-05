@@ -7,13 +7,13 @@ VAR
 	repeatTimer:TON;
 	
 	
-	AlarmHistoryData_Write:ST_AlarmInfo_DB_save;
-	ProductionHistoryData_Write:ST_Production_History_DB_Test;
+	AlarmHistoryData_Write:ST_AlarmInfo_DB;
+	ProductionHistoryData_Write:ST_PHI_GroupData_DB;
 	ProductionReport_Write:ST_OEE_ProductionReport;
 	ProductionSummary_Write:ST_OEE_ProductionSummary;
 	SoDuration_Write:ST_SoDuration;
 	StopCount_Write:ST_StopCount;
-	RegularCheckResults_Write:ST_RegularCheck_Results_DB;
+	RegularCheckResults_Write:ST_RegularCheck_Results;
 	
 	
 	writeFailCount:UDINT;
@@ -36,40 +36,54 @@ IF repeatTimer.Q THEN
 	
 	//simulate Peak save data amount
 	FOR i:=0 TO GVL.Max_IndexNum-1 DO
-		(*
+		(*OK
+		AlarmHistoryData_Write.wsMsgText:="20231204_8787";
 		IF GVL.fbDataToNovRam[i].M_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
 			writeFailCount:=writeFailCount+1;
 		END_IF
 		*)
-		(*
+		//(*OK
+		ProductionHistoryData_Write.stProductHistory.sSo_number:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
+		ProductionHistoryData_Write.stProductHistory.sFaam_id:= 'FB000120-E002-0001';		// from DB
+		ProductionHistoryData_Write.stProductHistory.diSo_id:= 3736;			// from ADS  //需要對應DB的So表So_id
+		ProductionHistoryData_Write.stProductHistory.diTrack_number:= 87;
 		IF GVL.fbDataToNovRam[i].M_ProductionHistory(addData:=ProductionHistoryData_Write) = FALSE THEN
 			writeFailCount2:=writeFailCount2+1;
 		END_IF
-		*)
-		//(*
+		//*)
+		(*Fail
+		ProductionReport_Write.diOk_part_count:=9987;
+		ProductionReport_Write.diSo_id:=3736;
+		ProductionReport_Write.sFaam_id:='FB000120-E002-0001';
+		
 		IF GVL.fbDataToNovRam[i].M_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
 			writeFailCount3:=writeFailCount3+1;
 		END_IF
-		//*)
-		(*
-		//write to db failed
+		*)
+		(*OK
+		ProductionSummary_Write.diSo_id:=3736;
+		ProductionSummary_Write.diSummary_value:=8787;
 		IF GVL.fbDataToNovRam[i].M_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
 			writeFailCount4:=writeFailCount4+1;
 		END_IF
 		*)
-		(*
-		//write to db failed
+		(*OK
+		SoDuration_Write.diSo_id:=3736;
+		SoDuration_Write.wsBatch_end_reason:="for test8787";
 		IF GVL.fbDataToNovRam[i].M_SoDuration(addData:=SoDuration_Write) = FALSE THEN
 			writeFailCount5:=writeFailCount5+1;
 		END_IF
 		*)
-		(*
-		//Failed 需要faamid
+		(*OK
+		StopCount_Write.diSo_id:=3736;
+		StopCount_Write.sStop_reason:='Leo';
 		IF GVL.fbDataToNovRam[i].M_StopCount(addData:=StopCount_Write) = FALSE THEN
 			writeFailCount6:=writeFailCount6+1;
 		END_IF
 		*)
-		(*
+		(*Fail
+		RegularCheckResults_Write.diSo_id:=3736;
+		RegularCheckResults_Write.wsEmployee_name_logged_in:="Leo8787";
 		IF GVL.fbDataToNovRam[i].M_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
 			writeFailCount7:=writeFailCount7+1;
 		END_IF
@@ -89,28 +103,35 @@ END_IF
       <LineId Id="69" Count="0" />
       <LineId Id="43" Count="1" />
       <LineId Id="213" Count="0" />
+      <LineId Id="344" Count="0" />
       <LineId Id="95" Count="2" />
       <LineId Id="214" Count="0" />
       <LineId Id="238" Count="0" />
+      <LineId Id="371" Count="2" />
+      <LineId Id="370" Count="0" />
       <LineId Id="114" Count="2" />
       <LineId Id="239" Count="0" />
       <LineId Id="263" Count="0" />
+      <LineId Id="397" Count="3" />
       <LineId Id="147" Count="1" />
       <LineId Id="146" Count="0" />
       <LineId Id="264" Count="1" />
-      <LineId Id="296" Count="0" />
+      <LineId Id="424" Count="1" />
       <LineId Id="151" Count="1" />
       <LineId Id="150" Count="0" />
       <LineId Id="266" Count="1" />
-      <LineId Id="320" Count="0" />
+      <LineId Id="426" Count="1" />
       <LineId Id="155" Count="1" />
       <LineId Id="165" Count="0" />
       <LineId Id="268" Count="1" />
-      <LineId Id="295" Count="0" />
+      <LineId Id="428" Count="1" />
       <LineId Id="159" Count="1" />
       <LineId Id="158" Count="0" />
       <LineId Id="270" Count="1" />
-      <LineId Id="163" Count="1" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="164" Count="0" />
       <LineId Id="162" Count="0" />
       <LineId Id="189" Count="0" />
       <LineId Id="41" Count="0" />

@@ -33,7 +33,7 @@ END_IF
 
 ]]></ST>
     </Implementation>
-    <Folder Name="Sub" Id="{99009e46-9b2f-446b-9e3c-ddc566aff4a9}" />
+    <Folder Name="Sub" Id="{d1926f8b-ff58-44d9-9156-ec5f00475888}" />
     <Method Name="M_AlarmHistory" Id="{0e3c3bf5-2da2-4ed3-b7d8-cece9b20ffa6}">
       <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
 VAR_INPUT
@@ -43,7 +43,7 @@ VAR_OUTPUT
 	
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -102,8 +102,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.AlarmHistory]-1 DO 
+				WriteData[i] := GVL.NovRamData.AlarmHistory[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -190,7 +194,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_Production_History_DB_Test;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionHistory]-1] OF ST_PHI_GroupData_DB;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -248,8 +252,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.ProductionHistory]-1 DO 
+				WriteData[i] := GVL.NovRamData.ProductionHistory[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -301,7 +309,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionReport]-1] OF ST_OEE_ProductionReport;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -360,8 +368,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.ProductionReport]-1 DO 
+				WriteData[i] := GVL.NovRamData.ProductionReport[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -413,7 +425,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.ProductionSummary]-1] OF ST_OEE_ProductionSummary;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -471,8 +483,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.ProductionSummary]-1 DO 
+				WriteData[i] := GVL.NovRamData.ProductionSummary[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -524,7 +540,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results_DB;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1] OF ST_RegularCheck_Results;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -583,8 +599,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.RegularCheckResults]-1 DO 
+				WriteData[i] := GVL.NovRamData.RegularCheckResults[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -636,7 +656,7 @@ VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.SoDuration]-1] OF ST_SoDuration;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -694,8 +714,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.SoDuration]-1 DO 
+				WriteData[i] := GVL.NovRamData.SoDuration[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -741,98 +765,13 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="M_ST_AlarmHistory_Convert" Id="{5b8cd87c-96ee-4037-a202-d74d22085ccd}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_AlarmHistory_Convert : BOOL
-VAR_INPUT
-	Input:ST_AlarmInfo_DB;
-END_VAR
-VAR_OUTPUT
-	Output:ST_AlarmInfo_DB_save;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_ProductionHistory_Convert" Id="{68baffc9-f706-47d6-88f8-4abf8842d603}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_ProductionHistory_Convert : BOOL
-VAR_INPUT
-	Input:ST_Production_History_DB;
-END_VAR
-VAR_OUTPUT
-	Output:ST_Production_History_DB_Test;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_ProductionReport_Convert" Id="{af148257-03fa-4365-8a2d-22bdd2769cf2}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_ProductionReport_Convert : BOOL
-VAR_INPUT
-	Input:ST_OEE_ProductionReport;
-END_VAR
-VAR_OUTPUT
-	Output:ST_OEE_ProductionReport;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_ProductionSummary_Convert" Id="{b22ff7b2-fb36-43d4-a8ad-c66ee5dbbec5}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_ProductionSummary_Convert : BOOL
-VAR_INPUT
-	Input:ST_OEE_ProductionSummary;
-END_VAR
-VAR_OUTPUT
-	Output:ST_OEE_ProductionSummary;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_RegularCheckResults_Convert" Id="{01020571-a260-43f0-9306-9b35a4d8ba81}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_RegularCheckResults_Convert : BOOL
-VAR_INPUT
-	Input:ST_RegularCheck_Results_DB;
-END_VAR
-VAR_OUTPUT
-	Output:ST_RegularCheck_Results;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_SoDuration_Convert" Id="{041093b7-486b-4764-8273-d6a2053f8837}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_SoDuration_Convert : BOOL
-VAR_INPUT
-	Input:ST_SoDuration;
-END_VAR
-VAR_OUTPUT
-	Output:ST_SoDuration;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="M_ST_StopCount_Convert" Id="{a101ea81-d579-4034-acb4-b6adc3e24537}" FolderPath="Sub\">
-      <Declaration><![CDATA[METHOD M_ST_StopCount_Convert : BOOL
-VAR_INPUT
-	Input:ST_StopCount;
-END_VAR
-VAR_OUTPUT
-	Output:ST_StopCount;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="M_StopCount" Id="{a1505196-e5cb-459d-bc10-3909af20d9b6}">
       <Declaration><![CDATA[METHOD M_StopCount : BOOL
 VAR_INPUT
 	udiNovRamIndex:UDINT;
 END_VAR
 VAR_INST
-	ReadData:ARRAY[0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;
+	WriteData:ARRAY[0..GVL.arrArrayLength[E_StructureType.StopCount]-1] OF ST_StopCount;//small
 	iStep:INT;
 	i:UDINT;
 	fbFileRingBuffer: FB_FileRingBuffer := ( sNetId     := '',
@@ -890,8 +829,12 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
+			FOR i:=0 TO GVL.arrArrayLength[E_StructureType.StopCount]-1 DO 
+				WriteData[i] := GVL.NovRamData.StopCount[udiNovRamIndex][i];
+			END_FOR
+			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(ReadData), cbWriteLen := SIZEOF(ReadData),
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -973,6 +916,8 @@ END_CASE
       <LineId Id="225" Count="0" />
       <LineId Id="124" Count="5" />
       <LineId Id="151" Count="0" />
+      <LineId Id="494" Count="2" />
+      <LineId Id="493" Count="0" />
       <LineId Id="130" Count="0" />
       <LineId Id="194" Count="1" />
       <LineId Id="132" Count="0" />
@@ -1013,48 +958,52 @@ END_CASE
       <LineId Id="137" Count="0" />
       <LineId Id="7" Count="2" />
       <LineId Id="135" Count="0" />
-      <LineId Id="11" Count="68" />
+      <LineId Id="11" Count="24" />
+      <LineId Id="168" Count="1" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="36" Count="43" />
       <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionReport">
-      <LineId Id="34" Count="75" />
+      <LineId Id="34" Count="31" />
+      <LineId Id="141" Count="1" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="66" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionSummary">
-      <LineId Id="34" Count="75" />
+      <LineId Id="34" Count="31" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="66" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_RegularCheckResults">
-      <LineId Id="34" Count="75" />
+      <LineId Id="34" Count="30" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="66" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_SoDuration">
-      <LineId Id="34" Count="75" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_AlarmHistory_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionHistory_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionReport_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_ProductionSummary_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_RegularCheckResults_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_SoDuration_Convert">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_NovRamToFileRingBuffer.M_ST_StopCount_Convert">
+      <LineId Id="34" Count="31" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="66" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_StopCount">
-      <LineId Id="34" Count="75" />
+      <LineId Id="34" Count="31" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="66" Count="43" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

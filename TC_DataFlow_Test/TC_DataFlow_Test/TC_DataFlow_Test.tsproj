@@ -2,7 +2,7 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.29">
 	<DataTypes>
 		<DataType>
-			<Name GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}" AutoDeleteType="true">ST_NovRam_Status</Name>
+			<Name GUID="{19DD6B9B-DFC9-2777-0193-4153CFAF687D}" AutoDeleteType="true">ST_NovRam_Status</Name>
 			<BitSize>96</BitSize>
 			<SubItem>
 				<Name>nowRowIndex</Name>
@@ -21,28 +21,28 @@
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
-				<BitSize>24</BitSize>
+				<BitSize>8</BitSize>
 				<BitOffs>64</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
-			<BitSize>192</BitSize>
+			<Name GUID="{C66F1D81-E675-3869-BD29-572A2A58A9D5}" AutoDeleteType="true">ST_FileRingBuffer_Status</Name>
+			<BitSize>64</BitSize>
 			<SubItem>
 				<Name>bFileFull</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[9]]></Comment>
-				<BitSize>72</BitSize>
+				<BitSize>8</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -50,11 +50,11 @@
 				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[3]]></Comment>
-				<BitSize>96</BitSize>
-				<BitOffs>96</BitOffs>
+				<BitSize>32</BitSize>
+				<BitOffs>32</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -150,8 +150,8 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{821630D6-4048-238E-B06C-CF96D38A7509}" AutoDeleteType="true">ST_Production_History_DB_Test</Name>
-			<BitSize>864</BitSize>
+			<Name GUID="{D5BABE9C-9C75-85C3-13F5-A12D19A86579}" AutoDeleteType="true">ST_Production_History_DB</Name>
+			<BitSize>4608</BitSize>
 			<SubItem>
 				<Name>dtStart_time</Name>
 				<Type GUID="{18071995-0000-0000-0000-00000000004D}">DATE_AND_TIME</Type>
@@ -174,60 +174,139 @@
 				<BitOffs>64</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>usiStation_number</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Name>diStation_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<Comment><![CDATA[ 站點編號]]></Comment>
-				<BitSize>8</BitSize>
+				<BitSize>32</BitSize>
 				<BitOffs>96</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>sStation_name</Name>
-				<Type GUID="{18071995-0000-0000-0000-000100000032}">STRING(50)</Type>
+				<Name>wsStation_name</Name>
+				<Type GUID="{18071995-0000-0000-0000-0002000000FF}">WSTRING(255)</Type>
 				<Comment><![CDATA[ 站點名稱]]></Comment>
-				<BitSize>408</BitSize>
-				<BitOffs>104</BitOffs>
+				<BitSize>4096</BitSize>
+				<BitOffs>128</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>usiTrack_number</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Name>diTrack_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<Comment><![CDATA[ 未定義  Smart Hardcode為1]]></Comment>
-				<BitSize>8</BitSize>
-				<BitOffs>512</BitOffs>
+				<BitSize>32</BitSize>
+				<BitOffs>4224</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>usiWpc_number</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<Name>diWpc_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<Comment><![CDATA[ Shuttle Id]]></Comment>
-				<BitSize>8</BitSize>
-				<BitOffs>520</BitOffs>
+				<BitSize>32</BitSize>
+				<BitOffs>4256</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>bPart_ok_overal_results</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
 				<Comment><![CDATA[ 此站點最終判斷/作業結果為OK或NG (彙整站點上的感測器結果及作業結果)]]></Comment>
 				<BitSize>8</BitSize>
-				<BitOffs>528</BitOffs>
+				<BitOffs>4288</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sSo_number</Name>
 				<Type GUID="{18071995-0000-0000-0000-00010000000C}">STRING(12)</Type>
 				<Comment><![CDATA[ 由HMI透過ADS告知  (DB中的So資料表需要存在對應資料)]]></Comment>
 				<BitSize>104</BitSize>
-				<BitOffs>536</BitOffs>
+				<BitOffs>4296</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sFaam_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
 				<Comment><![CDATA[ 由DB讀取]]></Comment>
 				<BitSize>168</BitSize>
-				<BitOffs>640</BitOffs>
+				<BitOffs>4400</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>diSo_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<Comment><![CDATA[ 由HMI透過ADS告知 (DB中的So資料表需要存在對應資料)]]></Comment>
 				<BitSize>32</BitSize>
-				<BitOffs>832</BitOffs>
+				<BitOffs>4576</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{56D9092F-449A-E7CC-C2B2-A011C2314D27}" AutoDeleteType="true">ST_Inspection_DB</Name>
+			<BitSize>768</BitSize>
+			<SubItem>
+				<Name>diSub_station_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
+				<Comment><![CDATA[ 站點上第N組感測器]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sSensor_type</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000032}">STRING(50)</Type>
+				<Comment><![CDATA[ Sensor類型]]></Comment>
+				<BitSize>408</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>bInspection_results</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<Comment><![CDATA[ Sensor回傳結果]]></Comment>
+				<BitSize>8</BitSize>
+				<BitOffs>440</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>rInspection_value</Name>
+				<Type GUID="{18071995-0000-0000-0000-00000000000D}">REAL</Type>
+				<Comment><![CDATA[ Sensor回傳數值]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>448</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sFaam_id</Name>
+				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
+				<BitSize>168</BitSize>
+				<BitOffs>480</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>sSo_number</Name>
+				<Type GUID="{18071995-0000-0000-0000-00010000000C}">STRING(12)</Type>
+				<BitSize>104</BitSize>
+				<BitOffs>648</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{F8B80397-1CE5-F71D-5C4A-0D0ACC07B8CA}" AutoDeleteType="true">ST_PHI_GroupData_DB</Name>
+			<Comment><![CDATA[Product History and Inspection data
+X64 size: 1064 bytes]]></Comment>
+			<BitSize>8512</BitSize>
+			<SubItem>
+				<Name>stProductHistory</Name>
+				<Type GUID="{D5BABE9C-9C75-85C3-13F5-A12D19A86579}">ST_Production_History_DB</Type>
+				<Comment><![CDATA[ single production data]]></Comment>
+				<BitSize>4608</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>arrstInspection</Name>
+				<Type GUID="{56D9092F-449A-E7CC-C2B2-A011C2314D27}">ST_Inspection_DB</Type>
+				<ArrayInfo>
+					<LBound>1</LBound>
+					<Elements>5</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[max sensor number = 5]]></Comment>
+				<BitSize>3840</BitSize>
+				<BitOffs>4608</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>arrbInspectionResultHaveSensorValue</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
+				<ArrayInfo>
+					<LBound>1</LBound>
+					<Elements>5</Elements>
+				</ArrayInfo>
+				<Comment><![CDATA[ return data of the sensor have a numerical value]]></Comment>
+				<BitSize>40</BitSize>
+				<BitOffs>8448</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -545,9 +624,48 @@
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{D3DD8E53-8529-7AB9-305C-5C2BA80591A8}" AutoDeleteType="true">ST_RegularCheck_Results_DB</Name>
+			<Name GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}" AutoDeleteType="true">E_RegularCheckSensorResult</Name>
+			<BitSize>16</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000006}">INT</BaseType>
+			<EnumInfo>
+				<Text><![CDATA[Null]]></Text>
+				<Enum>0</Enum>
+				<Comment><![CDATA[ 感測器沒判定過/使用  DB寫Null]]></Comment>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[Pass]]></Text>
+				<Enum>1</Enum>
+				<Comment><![CDATA[ 判定結果為OK  DB寫1]]></Comment>
+			</EnumInfo>
+			<EnumInfo>
+				<Text><![CDATA[Fail]]></Text>
+				<Enum>2</Enum>
+				<Comment><![CDATA[ 判定結果為NG  DB寫0]]></Comment>
+			</EnumInfo>
+			<Properties>
+				<Property>
+					<Name>qualified_only</Name>
+				</Property>
+				<Property>
+					<Name>to_string</Name>
+				</Property>
+				<Property>
+					<Name>to_string_function</Name>
+					<Value>__TO_STRING__146</Value>
+				</Property>
+				<Property>
+					<Name>to_wstring_function</Name>
+					<Value>__TO_WSTRING__146</Value>
+				</Property>
+				<Property>
+					<Name>generate_implicit_init_function</Name>
+				</Property>
+			</Properties>
+		</DataType>
+		<DataType>
+			<Name GUID="{C509B653-D9A9-FBE4-C5CA-A58255E1FCDE}" AutoDeleteType="true">ST_RegularCheck_Results</Name>
 			<Comment><![CDATA[ X64 size: 572 bytes]]></Comment>
-			<BitSize>4576</BitSize>
+			<BitSize>4608</BitSize>
 			<SubItem>
 				<Name>diStation_number</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
@@ -567,66 +685,66 @@
 				<BitOffs>64</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>bSensor</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
-				<BitSize>8</BitSize>
+				<Name>eSensor</Name>
+				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<BitSize>16</BitSize>
 				<BitOffs>96</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>bCamera</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
-				<BitSize>8</BitSize>
-				<BitOffs>104</BitOffs>
-			</SubItem>
-			<SubItem>
-				<Name>bLoadcell</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
-				<BitSize>8</BitSize>
+				<Name>eCamera</Name>
+				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<BitSize>16</BitSize>
 				<BitOffs>112</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>bSensor2</Name>
-				<Type GUID="{18071995-0000-0000-0000-000000000030}">BOOL</Type>
-				<BitSize>8</BitSize>
-				<BitOffs>120</BitOffs>
+				<Name>eLoadcell</Name>
+				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>128</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>eSensor2</Name>
+				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>144</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>diRegular_check_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<BitSize>32</BitSize>
-				<BitOffs>128</BitOffs>
+				<BitOffs>160</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sFaam_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000100000014}">STRING(20)</Type>
 				<BitSize>168</BitSize>
-				<BitOffs>160</BitOffs>
+				<BitOffs>192</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>sSo_number</Name>
 				<Type GUID="{18071995-0000-0000-0000-00010000000C}">STRING(12)</Type>
 				<BitSize>104</BitSize>
-				<BitOffs>328</BitOffs>
+				<BitOffs>360</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>diSo_id</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000009}">DINT</Type>
 				<BitSize>32</BitSize>
-				<BitOffs>448</BitOffs>
+				<BitOffs>480</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>wsEmployee_name_logged_in</Name>
 				<Type GUID="{18071995-0000-0000-0000-0002000000FF}">WSTRING(255)</Type>
 				<BitSize>4096</BitSize>
-				<BitOffs>480</BitOffs>
+				<BitOffs>512</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{6E6EAFD9-CE82-AAB1-7013-C24ED6571FA4}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>3328448</BitSize>
+			<Name GUID="{B73C7AB9-617F-0EFE-3E44-2241B6538695}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>1340352</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
-				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
+				<Type GUID="{19DD6B9B-DFC9-2777-0193-4153CFAF687D}">ST_NovRam_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
@@ -638,13 +756,13 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>arrFileRingBuffer_Status</Name>
-				<Type GUID="{2A885156-B4A4-3C4D-AF7E-A04CC326191F}">ST_FileRingBuffer_Status</Type>
+				<Type GUID="{C66F1D81-E675-3869-BD29-572A2A58A9D5}">ST_FileRingBuffer_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[FileRingBuffer_Status:ST_FileRingBuffer_Status;]]></Comment>
-				<BitSize>1344</BitSize>
+				<BitSize>448</BitSize>
 				<BitOffs>672</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -652,99 +770,99 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 				<Type GUID="{66ACB3D4-4616-F0B2-B7C7-17A57F31ACBE}">ST_AlarmInfo_DB_save</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<Comment><![CDATA[DATA]]></Comment>
-				<BitSize>639360</BitSize>
-				<BitOffs>2048</BitOffs>
+				<Comment><![CDATA[Compressed DATA]]></Comment>
+				<BitSize>213120</BitSize>
+				<BitOffs>1152</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionHistory</Name>
-				<Type GUID="{821630D6-4048-238E-B06C-CF96D38A7509}">ST_Production_History_DB_Test</Type>
+				<Type GUID="{F8B80397-1CE5-F71D-5C4A-0D0ACC07B8CA}">ST_PHI_GroupData_DB</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>77760</BitSize>
-				<BitOffs>641408</BitOffs>
+				<BitSize>255360</BitSize>
+				<BitOffs>214272</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionReport</Name>
 				<Type GUID="{22782B45-929E-0134-66DA-B4B1446B6973}">ST_OEE_ProductionReport</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>123840</BitSize>
-				<BitOffs>719168</BitOffs>
+				<BitSize>41280</BitSize>
+				<BitOffs>469632</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionSummary</Name>
 				<Type GUID="{5C5BB7B8-FCAA-C382-752A-82786A6E3ADC}">ST_OEE_ProductionSummary</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>106560</BitSize>
-				<BitOffs>843008</BitOffs>
+				<BitSize>35520</BitSize>
+				<BitOffs>510912</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>SoDuration</Name>
 				<Type GUID="{F5DFFFA1-95F8-7A9F-1409-672216FAC6D0}">ST_SoDuration</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>1512000</BitSize>
-				<BitOffs>949568</BitOffs>
+				<BitSize>504000</BitSize>
+				<BitOffs>546432</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>StopCount</Name>
 				<Type GUID="{87C8FF85-1AF0-02B5-1248-D47BD3A58298}">ST_StopCount</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>455040</BitSize>
-				<BitOffs>2461568</BitOffs>
+				<BitSize>151680</BitSize>
+				<BitOffs>1050432</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
-				<Type GUID="{D3DD8E53-8529-7AB9-305C-5C2BA80591A8}">ST_RegularCheck_Results_DB</Type>
+				<Type GUID="{C509B653-D9A9-FBE4-C5CA-A58255E1FCDE}">ST_RegularCheck_Results</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
-					<Elements>3</Elements>
+					<Elements>1</Elements>
 				</ArrayInfo>
 				<ArrayInfo Level="1">
 					<LBound>0</LBound>
 					<Elements>30</Elements>
 				</ArrayInfo>
-				<BitSize>411840</BitSize>
-				<BitOffs>2916608</BitOffs>
+				<BitSize>138240</BitSize>
+				<BitOffs>1202112</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
@@ -772,7 +890,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.NovRamData</Name>
-							<Type GUID="{6E6EAFD9-CE82-AAB1-7013-C24ED6571FA4}">ST_NovRam</Type>
+							<Type GUID="{B73C7AB9-617F-0EFE-3E44-2241B6538695}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>

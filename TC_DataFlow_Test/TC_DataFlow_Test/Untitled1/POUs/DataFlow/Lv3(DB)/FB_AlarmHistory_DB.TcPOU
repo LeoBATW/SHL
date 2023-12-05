@@ -22,7 +22,7 @@ VAR
 	stPara_all_alarm_history 			: ARRAY[0..9] OF ST_ExpParameter ;
 	iErrStep :INT := 9000;
 	iAHStep 							: INT ;
-
+	
 	//SQL Command
 	sCmd_insertAlarmHistory 			: STRING(1000) := '
 		INSERT INTO 
@@ -210,7 +210,7 @@ stPara_all_alarm_history[9].nParaSize := SIZEOF(ST_AlarmInfo_DB.sFaam_id) ;
     <Method Name="M_Upload" Id="{6ee696a8-6ea8-4282-9dfa-19362b4099ec}">
       <Declaration><![CDATA[METHOD M_Upload : BOOL
 VAR_INPUT
-	stAlarmInfo : ST_AlarmInfo_DB_save ;//DB_TEST
+	stAlarmInfo : ST_AlarmInfo_DB ;
 END_VAR
 VAR_INST
 	ITF_TcMessage : Tc3_EventLogger.I_TcMessage;
@@ -281,11 +281,14 @@ END_CASE
       <LineId Id="6" Count="2" />
     </LineIds>
     <LineIds Name="FB_AlarmHistory_DB.M_SetSQLCmdPara">
-      <LineId Id="173" Count="14" />
-      <LineId Id="236" Count="0" />
-      <LineId Id="188" Count="29" />
-      <LineId Id="237" Count="0" />
-      <LineId Id="218" Count="14" />
+      <LineId Id="68" Count="14" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="83" Count="17" />
+      <LineId Id="130" Count="5" />
+      <LineId Id="150" Count="5" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="156" Count="13" />
+      <LineId Id="124" Count="0" />
       <LineId Id="63" Count="0" />
     </LineIds>
     <LineIds Name="FB_AlarmHistory_DB.M_Upload">

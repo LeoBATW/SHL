@@ -18,15 +18,17 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Folder Name="Sub" Id="{2534213c-7e5e-4abf-9411-860d44a5b2d2}" />
     <Method Name="M_AlarmHistory" Id="{aac47326-eba1-4863-89c8-9d8cb955d250}">
       <Declaration><![CDATA[METHOD M_AlarmHistory : BOOL
 VAR_INPUT
-	addData:ST_AlarmInfo_DB_save;
+	addData:ST_AlarmInfo_DB;
 END_VAR
 VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_AlarmInfo_DB_save;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -37,7 +39,7 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.AlarmHistory[udiNowRowIndex][udiWritenIndex]:=addData;
+	M_ST_AlarmHistory_Compress(Input:=addData,Output=>GVL.NovRamData.AlarmHistory[udiNowRowIndex][udiWritenIndex]);
 	
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
@@ -63,12 +65,13 @@ END_IF
     <Method Name="M_ProductionHistory" Id="{d7343e0a-38fb-4763-8037-34bbcaf9758f}">
       <Declaration><![CDATA[METHOD M_ProductionHistory : BOOL
 VAR_INPUT
-	addData:ST_Production_History_DB_Test;
+	addData:ST_PHI_GroupData_DB;
 END_VAR
 VAR 
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_PHI_GroupData_DB;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -79,7 +82,7 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.ProductionHistory[udiNowRowIndex][udiWritenIndex]:=addData;
+	M_ST_ProductionHistory_Compress(Input:=addData,Output=>GVL.NovRamData.ProductionHistory[udiNowRowIndex][udiWritenIndex]);
 	
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
@@ -109,6 +112,7 @@ VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_OEE_ProductionReport;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -119,8 +123,8 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.ProductionReport[udiNowRowIndex][udiWritenIndex]:=addData;
-	
+	M_ST_ProductionReport_Compress(Input:=addData,Output=>GVL.NovRamData.ProductionReport[udiNowRowIndex][udiWritenIndex]);
+
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
@@ -149,6 +153,7 @@ VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_OEE_ProductionSummary;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -160,8 +165,8 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.ProductionSummary[udiNowRowIndex][udiWritenIndex]:=addData;
-	
+	M_ST_ProductionSummary_Compress(Input:=addData,Output=>GVL.NovRamData.ProductionSummary[udiNowRowIndex][udiWritenIndex]);
+
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
@@ -184,12 +189,13 @@ END_IF
     <Method Name="M_RegularCheckResults" Id="{9aa594fd-a6f0-4775-b77b-92a3336da06a}">
       <Declaration><![CDATA[METHOD M_RegularCheckResults : BOOL
 VAR_INPUT
-	addData:ST_RegularCheck_Results_DB;
+	addData:ST_RegularCheck_Results;
 END_VAR
 VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_RegularCheck_Results;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -201,7 +207,7 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.RegularCheckResults[udiNowRowIndex][udiWritenIndex]:=addData;
+	M_ST_RegularCheckResults_Compress(Input:=addData,Output=>GVL.NovRamData.RegularCheckResults[udiNowRowIndex][udiWritenIndex]);
 	
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
@@ -231,6 +237,7 @@ VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_SoDuration;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -241,7 +248,7 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.SoDuration[udiNowRowIndex][udiWritenIndex]:=addData;
+	M_ST_SoDuration_Compress(Input:=addData,Output=>GVL.NovRamData.SoDuration[udiNowRowIndex][udiWritenIndex]);
 	
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
@@ -262,6 +269,137 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="M_ST_AlarmHistory_Compress" Id="{90234377-5e57-4a9c-9b48-a547d1d556f7}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_AlarmHistory_Compress : BOOL
+VAR_INPUT
+	Input:ST_AlarmInfo_DB;
+END_VAR
+VAR_OUTPUT
+	Output:ST_AlarmInfo_DB_save;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output.lrTime_ms:=Input.lrTime_ms;
+Output.iMsgProc:=Input.iMsgProc;
+Output.iStateAfter:=Input.iStateAfter;
+Output.iMsgClass:=Input.iMsgClass;
+Output.diMsgNumber:=Input.diMsgNumber;
+Output.sTimeString:=Input.sTimeString;
+Output.wsMsgText:=Input.wsMsgText;
+Output.sPLC:=Input.sPLC;
+Output.wsEquipment:=Input.wsEquipment;
+Output.sFaam_id:=Input.sFaam_id;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionHistory_Compress" Id="{56b298ca-fed2-4f78-8add-9ff8f9eca520}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionHistory_Compress : BOOL
+VAR_INPUT
+	Input:ST_PHI_GroupData_DB;
+END_VAR
+VAR_OUTPUT
+	Output:ST_PHI_GroupData_DB;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionReport_Compress" Id="{6448b315-2048-49f6-b778-7e67bf20eea8}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionReport_Compress : BOOL
+VAR_INPUT
+	Input:ST_OEE_ProductionReport;
+END_VAR
+VAR_OUTPUT
+	Output:ST_OEE_ProductionReport;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_ProductionSummary_Compress" Id="{8cecd652-1a50-4b26-88c4-1513f9101c97}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_ProductionSummary_Compress : BOOL
+VAR_INPUT
+	Input:ST_OEE_ProductionSummary;
+END_VAR
+VAR_OUTPUT
+	Output:ST_OEE_ProductionSummary;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_RegularCheckResults_Compress" Id="{3d691fe0-8452-4cec-baed-830d96336e29}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_RegularCheckResults_Compress : BOOL
+VAR_INPUT
+	Input:ST_RegularCheck_Results;
+END_VAR
+VAR_OUTPUT
+	Output:ST_RegularCheck_Results;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+Output.stProductHistory.diStation_number:=Input.stProductHistory.diStation_number;
+Output.stProductHistory.diTrack_number:=Input.stProductHistory.diTrack_number;
+Output.stProductHistory.dtStart_time:=Input.stProductHistory.dtStart_time;
+
+IF Input.bSensor = TRUE THEN
+	Output.eSensor:=E_RegularCheckSensorResult.Pass;
+ELSE
+	Output.eSensor:=E_RegularCheckSensorResult.Fail;
+END_IF
+
+IF Input.bCamera = TRUE THEN
+	Output.eCamera:=E_RegularCheckSensorResult.Pass;
+ELSE
+	Output.eCamera:=E_RegularCheckSensorResult.Fail;
+END_IF
+
+IF Input.bLoadcell = TRUE THEN
+	Output.eLoadcell:=E_RegularCheckSensorResult.Pass;
+ELSE
+	Output.eLoadcell:=E_RegularCheckSensorResult.Fail;
+END_IF
+
+IF Input.bSensor2 = TRUE THEN
+	Output.eSensor2:=E_RegularCheckSensorResult.Pass;
+ELSE
+	Output.eSensor2:=E_RegularCheckSensorResult.Fail;
+END_IF
+
+Output.diRegular_check_id:=Input.diRegular_check_id;
+Output.sFaam_id:=Input.sFaam_id;
+Output.sSo_number:=Input.sSo_number;
+Output.diSo_id:=Input.diSo_id;
+Output.wsEmployee_name_logged_in:=Input.wsEmployee_name_logged_in;
+*)
+Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_SoDuration_Compress" Id="{8efca6c8-584d-46e0-9bd4-7ed0f3c98d6e}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_SoDuration_Compress : BOOL
+VAR_INPUT
+	Input:ST_SoDuration;
+END_VAR
+VAR_OUTPUT
+	Output:ST_SoDuration;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ST_StopCount_Compress" Id="{483d237d-5099-4da3-9f28-7308f5bcf526}" FolderPath="Sub\">
+      <Declaration><![CDATA[METHOD M_ST_StopCount_Compress : BOOL
+VAR_INPUT
+	Input:ST_StopCount;
+END_VAR
+VAR_OUTPUT
+	Output:ST_StopCount;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Output:=Input;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="M_StopCount" Id="{60ce841c-0d92-4ca8-9d69-3454400f79f4}">
       <Declaration><![CDATA[METHOD M_StopCount : BOOL
 VAR_INPUT
@@ -271,6 +409,7 @@ VAR
 	eStrIndex:DINT;
 	udiNowRowIndex:DINT;
 	udiWritenIndex:DINT;
+	CompressedData:ST_StopCount;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -282,8 +421,8 @@ udiWritenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
 IF GVL.NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE THEN//writable
 	
 	//write data
-	GVL.NovRamData.StopCount[udiNowRowIndex][udiWritenIndex]:=addData;
-	
+	M_ST_StopCount_Compress(Input:=addData,Output=>GVL.NovRamData.StopCount[udiNowRowIndex][udiWritenIndex]);
+
 	GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=GVL.NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
@@ -312,7 +451,9 @@ END_IF
       <LineId Id="140" Count="0" />
       <LineId Id="135" Count="0" />
       <LineId Id="142" Count="0" />
-      <LineId Id="107" Count="22" />
+      <LineId Id="107" Count="2" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="111" Count="18" />
       <LineId Id="69" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_ProductionHistory">
@@ -321,27 +462,81 @@ END_IF
       <LineId Id="51" Count="0" />
       <LineId Id="41" Count="0" />
       <LineId Id="52" Count="0" />
-      <LineId Id="7" Count="20" />
+      <LineId Id="7" Count="2" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="11" Count="16" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_ProductionReport">
-      <LineId Id="39" Count="25" />
+      <LineId Id="39" Count="7" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="48" Count="16" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_ProductionSummary">
-      <LineId Id="13" Count="25" />
+      <LineId Id="13" Count="7" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="22" Count="16" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_RegularCheckResults">
-      <LineId Id="13" Count="25" />
+      <LineId Id="13" Count="7" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="22" Count="16" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_SoDuration">
-      <LineId Id="13" Count="25" />
+      <LineId Id="13" Count="7" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="22" Count="16" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_AlarmHistory_Compress">
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="8" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_ProductionHistory_Compress">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_ProductionReport_Compress">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_ProductionSummary_Compress">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_RegularCheckResults_Compress">
+      <LineId Id="53" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="36" Count="4" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="41" Count="4" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="18" Count="4" />
+      <LineId Id="54" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_SoDuration_Compress">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataToNovRam.M_ST_StopCount_Compress">
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataToNovRam.M_StopCount">
-      <LineId Id="13" Count="25" />
+      <LineId Id="13" Count="7" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="22" Count="16" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
