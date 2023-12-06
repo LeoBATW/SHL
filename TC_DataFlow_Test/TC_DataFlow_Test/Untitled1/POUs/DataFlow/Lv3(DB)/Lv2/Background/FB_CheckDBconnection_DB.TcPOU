@@ -1,0 +1,487 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_CheckDBconnection_DB" Id="{841c07db-584c-4150-9273-fbd0e12e900a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CheckDBconnection_DB
+VAR_INPUT
+	udiDBID			: UDINT;
+	bEnable 		: BOOL;
+	wsDBname 		: WSTRING(128):="Smart" ; // DB Name
+	diMaxRetry	 	: DINT := 3; // ReTry次數 後報異常
+	tPeriod			: TIME := T#1S; // 讀取DB狀態時間
+	tTimeout 		: TIME := T#3S ; // 讀取超時後報異常
+END_VAR
+
+VAR_OUTPUT
+	bDataBaseLive		: BOOL := FALSE;
+	eDataBaseStatus		: E_DataBaseStatus := E_DataBaseStatus.OFFLINE;
+	bBusy 				: BOOL;
+	bDone				: BOOL;
+	bError				: BOOL;
+	udiErrId			: UDINT;
+END_VAR
+
+VAR
+	// FBs
+	FB_PLCDBCmdEvt : FB_PLCDBCmdEvt(sNetID := '' , tTimeout := T#10S) ;
+
+	
+	// Vars
+	stPara 			: ST_ExpParameter ;
+	iStep 			: INT ;
+	iMainStep		: INT;
+	iClcUpdateStep	: INT;
+	iErrStep		: INT  := 9000;
+	nRecords 		: UDINT ;
+	
+	// SQL Command
+	//sSqlCmd 		: STRING := 'SELECT state_desc FROM sys.databases where name = $'{strDBname}$'' ; // Return WString
+	sSqlCmd2 		: STRING := 'SELECT state FROM sys.databases where name = $'{strDBname}$'' ;  // Return usint(E_DataBaseStatus)
+	
+	// Data
+	//wstrSQLState 	: WSTRING(60) ;
+	eDBStatus		: E_DataBaseStatus;
+	
+	// Time
+	tReadStartTime	: TIME;
+	tReadEndTime	: TIME;
+	tReadDuration	: TIME;
+	
+	// Timer
+	fbFirstBootTimeDelay	: TON;
+	fbClcUpdateTimeout			: TON;
+END_VAR
+
+
+
+VAR CONSTANT
+	ctBootDelayTime	: TIME := T#5S;
+	ctClcTimeout	: TIME := T#10S;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbFirstBootTimeDelay(IN:= TRUE,  PT:= ctBootDelayTime);
+
+IF (NOT fbFirstBootTimeDelay.Q) THEN
+	RETURN;
+END_IF
+
+fbClcUpdateTimeout(PT := ctClcTimeout);
+
+CASE iMainStep OF
+	0:
+		IF bEnable THEN
+			M_SetBusy();
+			iMainStep := iMainStep + 100;
+		ELSE
+			bDataBaseLive		:= FALSE;
+			eDataBaseStatus		:= E_DataBaseStatus.OFFLINE;
+			fbClcUpdateTimeout.IN := FALSE;
+		END_IF
+	
+	100:	
+		fbClcUpdateTimeout.IN := TRUE;
+		IF M_CyclicUpdateDBStatus(diMaxRetry := diMaxRetry, tPeriod := tPeriod, tTimeout := tTimeout, wsDBname := wsDBname) THEN
+			fbClcUpdateTimeout.IN := FALSE;
+			iMainStep := iMainStep + 100;
+		ELSIF THIS^.bError THEN
+			fbClcUpdateTimeout.IN := FALSE;
+			iMainStep := iErrStep + 1000;
+		ELSIF fbClcUpdateTimeout.Q THEN
+			fbClcUpdateTimeout.IN := FALSE;
+			M_Reset();
+			iMainStep := iMainStep + 100;
+		END_IF
+		
+	200:
+		IF bEnable THEN
+			fbClcUpdateTimeout.IN := FALSE;
+			iMainStep := 100;
+		ELSIF THIS^.bError THEN
+			fbClcUpdateTimeout.IN := FALSE;
+			iMainStep := iErrStep + 1000;
+		ELSE
+			M_SetDone();
+			fbClcUpdateTimeout.IN := FALSE;
+			iMainStep := 0;
+		END_IF
+		
+		
+END_CASE]]></ST>
+    </Implementation>
+    <Method Name="M_ClearStatus" Id="{af9c8767-601c-4481-ad71-7de130b81b2f}">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_CyclicUpdateDBStatus" Id="{e5f53b7e-f31f-47ac-8859-2f337bb407e1}">
+      <Declaration><![CDATA[METHOD PRIVATE M_CyclicUpdateDBStatus : BOOL
+VAR_INPUT
+	diMaxRetry	 	: DINT := 3;
+	tPeriod			: TIME := T#1S;
+	tTimeout 		: TIME := T#3S ;
+	wsDBname 		: WSTRING(128) ;
+END_VAR
+
+VAR_INST
+	iRetryCnt 		: INT := 0;
+	fbTimeout		: TON;
+	fbPeriod		: TON;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (NOT fbFirstBootTimeDelay.Q) THEN
+	RETURN;
+END_IF
+
+
+fbTimeout(PT 	:= tTimeout);
+fbPeriod(PT 	:= tPeriod);
+
+CASE iClcUpdateStep OF
+	0:
+		fbTimeout.IN := TRUE;
+		fbPeriod.IN := FALSE;
+		
+		IF THIS^.bError THEN
+			fbTimeout.IN := FALSE;
+			fbPeriod.IN := FALSE;
+			iClcUpdateStep := iErrStep + 100;
+		ELSE
+			iClcUpdateStep := iClcUpdateStep + 100;
+		END_IF
+		
+	100:
+		IF M_GetDBStatus(tTimeout := tTimeout, wsDBname := wsDBname) THEN
+			fbPeriod.IN := TRUE;
+			fbTimeout.IN := FALSE;
+			iClcUpdateStep := iClcUpdateStep + 100;
+		ELSIF bError THEN
+			fbTimeout.IN := FALSE;
+			fbPeriod.IN := FALSE;
+			iClcUpdateStep := iErrStep + 100;
+		ELSIF fbTimeout.Q THEN
+			fbTimeout.IN := FALSE;
+			fbPeriod.IN := FALSE;
+			iClcUpdateStep := iErrStep + 200;
+			M_SetError();
+		END_IF
+		
+	200:
+		fbPeriod.IN := TRUE;
+		IF fbPeriod.Q THEN
+			fbTimeout.IN := FALSE;
+			fbPeriod.IN := FALSE;
+			iClcUpdateStep := iClcUpdateStep + 100;
+		END_IF
+	
+	300:
+		IF (NOT bDataBaseLive) THEN
+			iRetryCnt := iRetryCnt + 1;
+			IF iRetryCnt > diMaxRetry THEN
+				iRetryCnt := 0;
+				M_SetError();
+				iClcUpdateStep := iErrStep + 300;
+			END_IF
+		ELSE
+			M_CyclicUpdateDBStatus := TRUE;
+			iRetryCnt := 0;
+			iClcUpdateStep := 0;
+		END_IF
+ 
+	
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_GetDBStatus" Id="{8bc9e114-b619-4ad3-a986-e7482db2288f}">
+      <Declaration><![CDATA[METHOD Private M_GetDBStatus : BOOL
+VAR_INPUT
+	tTimeout 	: TIME := T#3S ;
+	wsDBname 	: WSTRING(128) ;
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (NOT fbFirstBootTimeDelay.Q) THEN
+	RETURN;
+END_IF
+
+CASE iStep OF 
+	0:
+		M_SetSQLCmdPara();
+		tReadStartTime := TIME();
+		FB_PLCDBCmdEvt.tTimeout := tTimeout;
+		iStep := iStep + 100;
+		
+	100:
+		IF FB_PLCDBCmdEvt.ExecuteDataReturn
+			(
+				hDBID        := udiDBID ,
+				pExpression  := ADR(sSqlCmd2), //SQL 指令的字串
+				cbExpression := SIZEOF(sSqlCmd2)  ,
+				pData        := ADR(wsDBname), //SQL 指令字串中的變數值，比如Keyword1數值是0，會帶入sCmd中的{Keyword}
+				cbData       := SIZEOF(wsDBname),
+				pParameter   := ADR(stPara), //SQL 指令字串中的變數的類型，比如sParaName為'Keyword'
+				cbParameter  := SIZEOF(stPara),
+				nStartIndex  := 0 ,
+				nRecordCount := 1 ,
+				pReturnData  := ADR(eDBStatus) , //用來接收資料的記憶體位址 
+				cbReturnData := SIZEOF(eDBStatus) ,
+				pRecords     := ADR(nRecords)) //讀回來的Row數量
+		THEN	
+			IF FB_PLCDBCmdEvt.bError THEN				
+				M_SetOutDBStatusOffline();
+				iStep := iStep + 100;
+			ELSIF nRecords > 1 THEN
+				// 讀回的數量超過記憶體所開的空間上限
+				M_SetError();
+				M_SetOutDBStatusOffline();
+				iStep := iErrStep + 100;
+			ELSE
+				// 成功讀取
+				M_UpdateOutputDBStatus();
+				iStep := iStep + 100;
+			END_IF
+		END_IF
+		
+	200:
+		tReadEndTime := TIME();
+		tReadDuration := tReadEndTime - tReadStartTime;
+		M_GetDBStatus := TRUE;
+		iStep := 0;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{df49e9ba-0973-4a8d-b2aa-22e4ece78001}">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[iStep := 0;
+iClcUpdateStep := 0;
+iMainStep := 0;
+fbClcUpdateTimeout.IN := FALSE;
+M_ClearStatus();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{d01754a1-2829-4056-9770-17a3697afc48}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{41d83ff6-1fb3-4900-a5a8-5f2ed5e506b8}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{452c63e0-cfbf-41e4-8a47-d2d4e8d022f4}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetOutDBStatusOffline" Id="{9afe554a-460a-4ace-8523-e2d20e21600e}">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetOutDBStatusOffline
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bDataBaseLive := FALSE;
+eDataBaseStatus	:= E_DataBaseStatus.OFFLINE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetSQLCmdPara" Id="{5c20dbf9-4cd7-4587-ab54-933952786f8a}">
+      <Declaration><![CDATA[METHOD Private M_SetSQLCmdPara : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stPara.eParaType := E_ExpParameterType.WSTRING_ ;
+stPara.nParaSize := SIZEOF(WSTRING(128)) ;
+stPara.sParaName := 'strDBname' ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_UpdateOutputDBStatus" Id="{10a3934f-f0ec-47cd-8d0e-4a908a3c8b1c}">
+      <Declaration><![CDATA[METHOD PRIVATE M_UpdateOutputDBStatus
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[eDataBaseStatus	:= eDBStatus;
+IF eDBStatus = E_DataBaseStatus.ONLINE THEN
+	bDataBaseLive	:= TRUE;
+ELSE
+	bDataBaseLive	:= FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_CheckDBconnection_DB">
+      <LineId Id="977" Count="1" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="985" Count="1" />
+      <LineId Id="1008" Count="0" />
+      <LineId Id="988" Count="1" />
+      <LineId Id="987" Count="0" />
+      <LineId Id="991" Count="0" />
+      <LineId Id="993" Count="0" />
+      <LineId Id="1027" Count="0" />
+      <LineId Id="994" Count="0" />
+      <LineId Id="1015" Count="0" />
+      <LineId Id="1034" Count="1" />
+      <LineId Id="1016" Count="0" />
+      <LineId Id="995" Count="1" />
+      <LineId Id="999" Count="0" />
+      <LineId Id="1012" Count="0" />
+      <LineId Id="1000" Count="0" />
+      <LineId Id="1014" Count="0" />
+      <LineId Id="1004" Count="0" />
+      <LineId Id="1001" Count="0" />
+      <LineId Id="1013" Count="0" />
+      <LineId Id="1003" Count="0" />
+      <LineId Id="1006" Count="0" />
+      <LineId Id="1019" Count="0" />
+      <LineId Id="1017" Count="1" />
+      <LineId Id="1002" Count="0" />
+      <LineId Id="1020" Count="2" />
+      <LineId Id="1031" Count="0" />
+      <LineId Id="1023" Count="0" />
+      <LineId Id="1029" Count="1" />
+      <LineId Id="1028" Count="0" />
+      <LineId Id="1025" Count="0" />
+      <LineId Id="1032" Count="1" />
+      <LineId Id="1026" Count="0" />
+      <LineId Id="1024" Count="0" />
+      <LineId Id="997" Count="0" />
+      <LineId Id="1005" Count="0" />
+      <LineId Id="992" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_ClearStatus">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_CyclicUpdateDBStatus">
+      <LineId Id="73" Count="1" />
+      <LineId Id="70" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="75" Count="1" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="37" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_GetDBStatus">
+      <LineId Id="295" Count="0" />
+      <LineId Id="297" Count="1" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="246" Count="3" />
+      <LineId Id="251" Count="19" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="275" Count="16" />
+      <LineId Id="293" Count="1" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_Reset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="14" Count="2" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_SetOutDBStatusOffline">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_SetSQLCmdPara">
+      <LineId Id="210" Count="1" />
+      <LineId Id="208" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CheckDBconnection_DB.M_UpdateOutputDBStatus">
+      <LineId Id="6" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

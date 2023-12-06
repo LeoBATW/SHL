@@ -1,0 +1,410 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <EnumerationTextList Name="E_DataBaseTable" Id="{65fcec10-34f7-4819-8a93-df39bd6ffc18}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'to_string'}
+TYPE E_DataBaseTable :
+(
+	NoError := 0,
+	HardwareConfig_ReadFail,
+	HardwareConfig_ReadDataOutOfRange,
+	HardwareConfig_InputReferenceInvaild,
+	HardwareConfig_NoData,
+	MachineParameter_ReadFail,
+	MachineParameter_ReadDataOutOfRange,
+	MachineParameter_InputReferenceInvaild,
+	MachineParameter_NoData,
+	MachineParameter_FillDataToSubsysFail,
+	MachineParameter_FillDataToCoreSysFail,
+	MachineParameter_FillDataToMachineFail,
+	MessageList_ReadFail,
+	MessageList_ReadDataOutOfRange,	
+	MessageList_InputReferenceInvaild,
+	MessageList_NoData,
+	MessageList_MessageCodeOrArraySizeOutOfRange,
+	AlarmHistory_UploadDataFail,
+	DataUpload_ConnectToDBFail,
+	DataUpload_AlarmHistoryBufferFull,
+	DataUpload_AlarmHistoryUploadFail,
+	DataUpload_AlarmHistoryUploadFailWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_ProductionHistoryBufferFull,
+	DataUpload_ProductionHistoryUploadFail,
+	DataUpload_ProductionHistoryWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_ProductionReportBufferFull,
+	DataUpload_ProductionReportUploadFail,
+	DataUpload_ProductionReportWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_ProductionSummaryBufferFull,
+	DataUpload_ProductionSummaryUploadFail,
+	DataUpload_ProductionSummaryWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_SoDurationBufferFull,
+	DataUpload_SoDurationUploadFail,
+	DataUpload_SoDurationWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_StopCountBufferFull,	
+	DataUpload_StopCountUploadFail,
+	DataUpload_StopCountWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	DataUpload_RegularCheckResultsBufferFull,
+	DataUpload_RegularCheckResultsUploadFail,
+	DataUpload_RegularCheckResultsWriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	ProductionReport_UploadDataFail,
+	ProductionSummary_UploadDataFail,
+	ProductionHistoryInspection_UploadDataFail,
+	RegularCheckResults_UploadDataFail,
+	SoDuration_UploadDataFail,
+	StopCount_UploadDataFail,
+	CheckDBconnection_ReadDBStatusTimeout,
+	CheckDBconnection_RetryConnectToDBFail,
+	CheckDBconnection_StatusDataOutOfRange,
+	ProdHistoryProcedure_UploadDataFail,
+	ProdHistoryProcedure_WriteDataToFileFail, //重大異常，不能直接reset需要人員排查原因，程式內部鎖死不能reset
+	ProdHistoryProcedure_InputInterfaceInvalid,
+	ProdStatusChangedStopCount_FillDataTimeout,
+	ProdStatusChangedStopCount_AddDataToBufferTimeout,
+	UploadEndBatchData_FillProductionReportDataTimeout,
+	UploadEndBatchData_FillProductionSummaryDataTimeout,
+	UploadEndBatchData_FillSoDurationDataTimeout,
+	UploadEndBatchData_AddProductionReportDataToBufferTimeout,
+	UploadEndBatchData_AddProductionSummaryDataToBufferTimeout,
+	UploadEndBatchData_AddSoDurationDataToBufferTimeout,
+	UploadProdRegularReport_FillProductionReportDataTimeout,
+	UploadProdRegularReport_AddProductionReportDataToBufferTimeout
+	
+	
+)UDINT;
+END_TYPE
+]]></Declaration>
+    <XmlArchive>
+      <Data>
+        <o xml:space="preserve" t="TextListEnumerationTextListObject">
+          <l n="TextList" t="ArrayList" cet="TextListRow">
+            <o>
+              <v n="TextID">"NoError"</v>
+              <v n="TextDefault">"0"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"HardwareConfig_ReadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"HardwareConfig_ReadDataOutOfRange"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"HardwareConfig_InputReferenceInvaild"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"HardwareConfig_NoData"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_ReadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_ReadDataOutOfRange"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_InputReferenceInvaild"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_NoData"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_FillDataToSubsysFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_FillDataToCoreSysFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MachineParameter_FillDataToMachineFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MessageList_ReadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MessageList_ReadDataOutOfRange"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MessageList_InputReferenceInvaild"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MessageList_NoData"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MessageList_MessageCodeOrArraySizeOutOfRange"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"AlarmHistory_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ConnectToDBFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_AlarmHistoryBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_AlarmHistoryUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_AlarmHistoryUploadFailWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionHistoryBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionHistoryUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionHistoryWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionReportBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionReportUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionReportWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionSummaryBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionSummaryUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_ProductionSummaryWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_SoDurationBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_SoDurationUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_SoDurationWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_StopCountBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_StopCountUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_StopCountWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_RegularCheckResultsBufferFull"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_RegularCheckResultsUploadFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DataUpload_RegularCheckResultsWriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProductionReport_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProductionSummary_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProductionHistoryInspection_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"RegularCheckResults_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SoDuration_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"StopCount_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"CheckDBconnection_ReadDBStatusTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"CheckDBconnection_RetryConnectToDBFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"CheckDBconnection_StatusDataOutOfRange"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProdHistoryProcedure_UploadDataFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProdHistoryProcedure_WriteDataToFileFail"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProdHistoryProcedure_InputInterfaceInvalid"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProdStatusChangedStopCount_FillDataTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ProdStatusChangedStopCount_AddDataToBufferTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_FillProductionReportDataTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_FillProductionSummaryDataTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_FillSoDurationDataTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_AddProductionReportDataToBufferTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_AddProductionSummaryDataToBufferTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadEndBatchData_AddSoDurationDataToBufferTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadProdRegularReport_FillProductionReportDataTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"UploadProdRegularReport_AddProductionReportDataToBufferTimeout"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">""</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+          </l>
+          <l n="Languages" t="ArrayList" />
+          <v n="GuidInit">{a0762a64-bd7c-4b85-b8cd-8512ab2563f2}</v>
+          <v n="GuidReInit">{a9a61dd7-ba83-4f88-9a99-9310d9e309c3}</v>
+          <v n="GuidExitX">{b2d743ed-b80c-478a-aa18-a05124792291}</v>
+        </o>
+      </Data>
+      <TypeList>
+        <Type n="ArrayList">System.Collections.ArrayList</Type>
+        <Type n="Guid">System.Guid</Type>
+        <Type n="String">System.String</Type>
+        <Type n="TextListEnumerationTextListObject">{4b60233c-f940-4beb-b331-82133b520151}</Type>
+        <Type n="TextListRow">{53da1be7-ad25-47c3-b0e8-e26286dad2e0}</Type>
+      </TypeList>
+    </XmlArchive>
+  </EnumerationTextList>
+</TcPlcObject>

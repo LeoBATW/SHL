@@ -5,14 +5,35 @@
 VAR
 	i:UDINT;
 	k:UDINT;
+	
+	wsDBname				: WSTRING(128) := "Smart"; // 暫時測試用
+	eDBID					: E_DBID		:= E_DBID.RemoteDB;
+	stSoInfo	: ST_ShopOrderInformation;
+	stMachineInfo : ST_MachineInformation;
+
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
-GVL.fbDataFlowManagement();]]></ST>
+      <ST><![CDATA[(*
+stSoInfo.diSo_id := stShopOrder_pre.diShopOrderID;
+stSoInfo.sSo_number := stShopOrder_pre.sShopOrderNumber;
+
+stMachineInfo.sFaam_id := sEqipmentNumber;
+stMachineInfo.wsEquipment := wsEquipment;
+*)
+GVL.fbDataFlowManagement(eDBID := eDBID,
+					wsDBname := wsDBname,
+					stMachineInfo := stMachineInfo,
+					stSoInfo := stSoInfo,);]]></ST>
     </Implementation>
     <LineIds Name="PG_SaveData">
+      <LineId Id="286" Count="1" />
       <LineId Id="243" Count="0" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="289" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="276" Count="2" />
       <LineId Id="270" Count="0" />
     </LineIds>
   </POU>

@@ -9,18 +9,27 @@ VAR RETAIN
 	NovRamData:ST_NovRam;
 END_VAR
 VAR_INPUT
+	eDBID		: E_DBID := E_DBID.RemoteDB;
+	wsDBname	: WSTRING(128); // DB Name
+	stMachineInfo : ST_MachineInformation;
+	stSoInfo	: ST_ShopOrderInformation;
 END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	{attribute 'hide'}
 	lrFileUseRate: ARRAY[0..6] OF LREAL;
+	{attribute 'hide'}
 	lrRamUseRate:ARRAY[0..6] OF LREAL;
 	
 	//Data To NovRam
+	{attribute 'hide'}
 	fbDataToNovRam : FB_DataToNovRam;
 	//NovRam To FileRingBuffer
+	{attribute 'hide'}
 	fbNovRamToFileRingBuffer:ARRAY [0..6] OF ARRAY[0..GVL.NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
 	//FileRingBuffer To DataBase
+	{attribute 'hide'}
 	fbFileRingBufferToDB:ARRAY [0..6] OF ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY[0..GVL.FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
 END_VAR
 ]]></Declaration>
@@ -34,8 +43,122 @@ M_CalcUseRate(lrFileUseRate:=lrFileUseRate,lrRamUseRate:=lrRamUseRate);
 
 ]]></ST>
     </Implementation>
-    <Method Name="M_CalcUseRate" Id="{b1b25544-751d-4a1e-a1ef-1e90150db345}">
-      <Declaration><![CDATA[METHOD M_CalcUseRate : BOOL
+    <Folder Name="Add" Id="{cf7edd92-eecd-48da-b39e-1de52b16613d}">
+      <Folder Name="Sub" Id="{54692b75-075a-41bc-bde4-34a4d1eaeeff}" />
+    </Folder>
+    <Folder Name="Private" Id="{15d896e7-5dd7-4dee-a796-c8fa327031aa}" />
+    <Method Name="M_Add_AlarmHistory" Id="{ab3fc6a2-e2f0-4d96-9438-03f3cf2e8e90}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_AlarmHistory : BOOL
+VAR_INPUT
+	addData : ST_AlarmInfo_DB ;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_AlarmHistory:=fbDataToNovRam.M_AlarmHistory(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_ProductionHistoryInspection" Id="{5e6c14bf-c6c2-43f8-923f-2e95c0af200a}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_ProductionHistoryInspection : BOOL
+VAR_INPUT
+	addData:ST_PHI_GroupData_DB;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_ProductionHistoryInspection:=fbDataToNovRam.M_ProductionHistory(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_ProductionReport" Id="{ff1625e1-b646-4af9-ad66-f6b62dc7a7e1}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_ProductionReport : BOOL
+VAR_INPUT
+	addData:ST_OEE_ProductionReport;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_ProductionReport:=fbDataToNovRam.M_ProductionReport(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_ProductionSummary" Id="{3838ca8f-0ad7-46eb-9f0e-7d065e2f16dd}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_ProductionSummary : BOOL
+VAR_INPUT
+	addData:ST_OEE_ProductionSummary;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_ProductionSummary:=fbDataToNovRam.M_ProductionSummary(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_RegularCheckResults" Id="{2944582c-7086-467c-9f74-6b78da24712f}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_RegularCheckResults : BOOL
+VAR_INPUT
+	addData:ST_RegularCheck_Results;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_RegularCheckResults:=fbDataToNovRam.M_RegularCheckResults(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_SoDuration" Id="{5d8d8a5e-7fd4-4d7e-823f-3bad764c7d9d}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_SoDuration : BOOL
+VAR_INPUT
+	addData:ST_SoDuration;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_SoDuration:=fbDataToNovRam.M_SoDuration(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Add_StopCount" Id="{d7560351-6982-4cf3-817b-5f091a468833}" FolderPath="Add\">
+      <Declaration><![CDATA[METHOD M_Add_StopCount : BOOL
+VAR_INPUT
+	addData:ST_StopCount;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_Add_StopCount:=fbDataToNovRam.M_StopCount(addData:=addData);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_AutoFill_MachineInfo" Id="{f4898d49-910f-400a-bf4f-5f42df858981}" FolderPath="Add\Sub\">
+      <Declaration><![CDATA[METHOD M_AutoFill_MachineInfo : BOOL
+VAR_INPUT
+	refsFaam_id		: REFERENCE TO STRING(20); // 設備ID
+	refwsEquipment : REFERENCE TO WSTRING(25); // 設備名稱
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF __ISVALIDREF(refwsEquipment) AND_THEN refwsEquipment = "" THEN //檢查Equipmet是否有填值
+	refwsEquipment := stMachineInfo.wsEquipment;
+END_IF
+
+IF __ISVALIDREF(refsFaam_id) AND_THEN refsFaam_id = '' THEN //檢查Equipmet是否有填值
+	refsFaam_id := stMachineInfo.sFaam_id;
+END_IF
+
+M_AutoFill_MachineInfo := True;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_AutoFill_SoInfo" Id="{3f245a41-a756-4e39-a2ca-b846a05ac8e0}" FolderPath="Add\Sub\">
+      <Declaration><![CDATA[METHOD M_AutoFill_SoInfo : BOOL
+VAR_INPUT
+	refdiSo_id	: REFERENCE TO DINT;
+	refsSo_number : REFERENCE TO STRING(12);
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF __ISVALIDREF(refdiSo_id) AND_THEN refdiSo_id = 0 THEN
+	refdiSo_id := stSoInfo.diSo_id;
+END_IF
+
+IF __ISVALIDREF(refsSo_number) AND_THEN refsSo_number = '' THEN
+	refsSo_number := stSoInfo.sSo_number;
+END_IF
+
+M_AutoFill_SoInfo := True;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_CalcUseRate" Id="{b1b25544-751d-4a1e-a1ef-1e90150db345}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE M_CalcUseRate : BOOL
 VAR_IN_OUT
 	lrFileUseRate: ARRAY[0..6] OF LREAL;
 	lrRamUseRate:ARRAY[0..6] OF LREAL;
@@ -72,8 +195,8 @@ END_VAR]]></Declaration>
 END_FOR]]></ST>
       </Implementation>
     </Method>
-    <Method Name="M_CyclicUpdate" Id="{e14d3aed-0555-49d4-9fa9-9256ac3db4b1}">
-      <Declaration><![CDATA[METHOD M_CyclicUpdate : BOOL
+    <Method Name="M_CyclicUpdate" Id="{e14d3aed-0555-49d4-9fa9-9256ac3db4b1}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE M_CyclicUpdate : BOOL
 VAR_INPUT
 END_VAR
 VAR
@@ -120,6 +243,39 @@ END_FOR
       <LineId Id="141" Count="1" />
       <LineId Id="116" Count="0" />
       <LineId Id="93" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_AlarmHistory">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_ProductionHistoryInspection">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_ProductionReport">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_ProductionSummary">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_RegularCheckResults">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_SoDuration">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_Add_StopCount">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_AutoFill_MachineInfo">
+      <LineId Id="44" Count="0" />
+      <LineId Id="32" Count="7" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="45" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataFlowManagement.M_AutoFill_SoInfo">
+      <LineId Id="49" Count="0" />
+      <LineId Id="37" Count="7" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="50" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataFlowManagement.M_CalcUseRate">
       <LineId Id="8" Count="20" />

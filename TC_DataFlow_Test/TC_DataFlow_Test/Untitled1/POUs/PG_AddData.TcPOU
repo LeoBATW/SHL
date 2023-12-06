@@ -35,71 +35,63 @@ IF repeatTimer.Q THEN
 	repeatTimer(in:=FALSE);
 	
 	FOR i:=1 TO 10 DO
-		ProductionHistoryData_Write.stProductHistory.sSo_number:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
-		ProductionHistoryData_Write.stProductHistory.sFaam_id:= 'FB000120-E002-0001';		// from DB
-		ProductionHistoryData_Write.stProductHistory.diSo_id:= 3736;			// from ADS  //需要對應DB的So表So_id
-		ProductionHistoryData_Write.stProductHistory.diTrack_number:= 987;
-		IF GVL.fbDataFlowManagement.fbDataToNovRam.M_ProductionHistory(addData:=ProductionHistoryData_Write) = FALSE THEN
-			writeFailCount2:=writeFailCount2+1;
-		END_IF
-	END_FOR
-	
-	//simulate Peak save data amount
-	FOR i:=0 TO GVL.Max_IndexNum-1 DO
-		(*OK
-		AlarmHistoryData_Write.wsMsgText:="20231204_8787";
-		IF GVL.fbDataToNovRam[i].M_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
+		(*
+		AlarmHistoryData_Write.wsMsgText:="20231205_1637";
+		IF GVL.fbDataFlowManagement.M_Add_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
 			writeFailCount:=writeFailCount+1;
 		END_IF
 		*)
-		(*OK
+		(*
 		ProductionHistoryData_Write.stProductHistory.sSo_number:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
 		ProductionHistoryData_Write.stProductHistory.sFaam_id:= 'FB000120-E002-0001';		// from DB
 		ProductionHistoryData_Write.stProductHistory.diSo_id:= 3736;			// from ADS  //需要對應DB的So表So_id
-		ProductionHistoryData_Write.stProductHistory.diTrack_number:= 87;
-		IF GVL.fbDataToNovRam[i].M_ProductionHistory(addData:=ProductionHistoryData_Write) = FALSE THEN
+		ProductionHistoryData_Write.stProductHistory.diTrack_number:= 998877;
+		IF GVL.fbDataFlowManagement.M_Add_ProductionHistoryInspection(addData:=ProductionHistoryData_Write) = FALSE THEN
 			writeFailCount2:=writeFailCount2+1;
 		END_IF
 		*)
+		(*
+		ProductionSummary_Write.diSo_id:=3736;
+		ProductionSummary_Write.diSummary_value:=87887;
+		IF GVL.fbDataFlowManagement.M_Add_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
+			writeFailCount4:=writeFailCount4+1;
+		END_IF
+		*)
+		
+		(*
+		SoDuration_Write.diSo_id:=3736;
+		SoDuration_Write.wsBatch_end_reason:="for test87887";
+		IF GVL.fbDataFlowManagement.M_Add_SoDuration(addData:=SoDuration_Write) = FALSE THEN
+			writeFailCount5:=writeFailCount5+1;
+		END_IF
+		*)
+		
+		(*
+		StopCount_Write.diSo_id:=3736;
+		StopCount_Write.sStop_reason:='oeL';
+		IF GVL.fbDataFlowManagement.M_Add_StopCount(addData:=StopCount_Write) = FALSE THEN
+			writeFailCount6:=writeFailCount6+1;
+		END_IF
+		*)
+		
 		(*Fail
 		ProductionReport_Write.diOk_part_count:=9987;
 		ProductionReport_Write.diSo_id:=3736;
 		ProductionReport_Write.sFaam_id:='FB000120-E002-0001';
 		
-		IF GVL.fbDataToNovRam[i].M_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
+		IF GVL.fbDataFlowManagement.M_Add_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
 			writeFailCount3:=writeFailCount3+1;
 		END_IF
 		*)
-		(*OK
-		ProductionSummary_Write.diSo_id:=3736;
-		ProductionSummary_Write.diSummary_value:=8787;
-		IF GVL.fbDataToNovRam[i].M_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
-			writeFailCount4:=writeFailCount4+1;
-		END_IF
-		*)
-		(*OK
-		SoDuration_Write.diSo_id:=3736;
-		SoDuration_Write.wsBatch_end_reason:="for test8787";
-		IF GVL.fbDataToNovRam[i].M_SoDuration(addData:=SoDuration_Write) = FALSE THEN
-			writeFailCount5:=writeFailCount5+1;
-		END_IF
-		*)
-		(*OK
-		StopCount_Write.diSo_id:=3736;
-		StopCount_Write.sStop_reason:='Leo';
-		IF GVL.fbDataToNovRam[i].M_StopCount(addData:=StopCount_Write) = FALSE THEN
-			writeFailCount6:=writeFailCount6+1;
-		END_IF
-		*)
+				
 		(*Fail
 		RegularCheckResults_Write.diSo_id:=3736;
 		RegularCheckResults_Write.wsEmployee_name_logged_in:="Leo8787";
-		IF GVL.fbDataToNovRam[i].M_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
+		IF GVL.fbDataFlowManagement.M_Add_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
 			writeFailCount7:=writeFailCount7+1;
 		END_IF
 		*)
 	END_FOR
-	
 END_IF
 
 ]]></ST>
@@ -112,43 +104,24 @@ END_IF
       <LineId Id="46" Count="0" />
       <LineId Id="467" Count="0" />
       <LineId Id="69" Count="0" />
-      <LineId Id="474" Count="5" />
-      <LineId Id="461" Count="1" />
-      <LineId Id="457" Count="0" />
-      <LineId Id="43" Count="1" />
-      <LineId Id="213" Count="0" />
-      <LineId Id="344" Count="0" />
-      <LineId Id="95" Count="2" />
-      <LineId Id="214" Count="0" />
-      <LineId Id="238" Count="0" />
-      <LineId Id="371" Count="2" />
-      <LineId Id="370" Count="0" />
-      <LineId Id="114" Count="2" />
-      <LineId Id="239" Count="0" />
-      <LineId Id="263" Count="0" />
-      <LineId Id="397" Count="3" />
-      <LineId Id="147" Count="1" />
-      <LineId Id="146" Count="0" />
-      <LineId Id="264" Count="1" />
-      <LineId Id="424" Count="1" />
-      <LineId Id="151" Count="1" />
-      <LineId Id="150" Count="0" />
-      <LineId Id="266" Count="1" />
-      <LineId Id="426" Count="1" />
-      <LineId Id="155" Count="1" />
-      <LineId Id="165" Count="0" />
-      <LineId Id="268" Count="1" />
-      <LineId Id="428" Count="1" />
-      <LineId Id="159" Count="1" />
-      <LineId Id="158" Count="0" />
-      <LineId Id="270" Count="1" />
-      <LineId Id="431" Count="0" />
-      <LineId Id="433" Count="0" />
-      <LineId Id="432" Count="0" />
-      <LineId Id="164" Count="0" />
-      <LineId Id="162" Count="0" />
-      <LineId Id="189" Count="0" />
-      <LineId Id="41" Count="0" />
+      <LineId Id="532" Count="0" />
+      <LineId Id="550" Count="0" />
+      <LineId Id="552" Count="1" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="533" Count="0" />
+      <LineId Id="535" Count="7" />
+      <LineId Id="534" Count="0" />
+      <LineId Id="544" Count="5" />
+      <LineId Id="543" Count="0" />
+      <LineId Id="555" Count="0" />
+      <LineId Id="557" Count="5" />
+      <LineId Id="556" Count="0" />
+      <LineId Id="563" Count="0" />
+      <LineId Id="565" Count="5" />
+      <LineId Id="564" Count="0" />
+      <LineId Id="571" Count="0" />
+      <LineId Id="573" Count="15" />
+      <LineId Id="572" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="42" Count="0" />
       <LineId Id="23" Count="0" />

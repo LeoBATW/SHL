@@ -9,9 +9,15 @@ VAR_INPUT
 END_VAR
 VAR_IN_OUT
 	NovRamData:ST_NovRam;
+END_VAR
+VAR
+	fbDataUpload_Leo:FB_DataUpload_Leo;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF dataType = E_DB_StructureType.AlarmHistory THEN
+      <ST><![CDATA[
+fbDataUpload_Leo();
+
+IF dataType = E_DB_StructureType.AlarmHistory THEN
 	M_AlarmHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
 ELSIF dataType = E_DB_StructureType.ProductionHistory THEN
 	M_ProductionHistory(udiNovRam_BufferIndex:=udiNovRam_BufferIndex,udiFile_Index:=udiFile_Index);
@@ -111,14 +117,16 @@ CASE iStep OF
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		
-		IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=DataToDB) THEN
+	
+		IF fbDataUpload_Leo.M_AlarmHistory_Upload(stAlarmInfo:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
-		
-		IF NOT fbAlarmHistory_DB.bError THEN//write OK
+	
+		IF NOT fbDataUpload_Leo.AlarmHistoryUpload_Err AND fbDataUpload_Leo.AlarmHistoryUpload_Done THEN
+		//IF NOT fbAlarmHistory_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
@@ -1210,6 +1218,9 @@ END_CASE]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_FileRingBufferToDB">
+      <LineId Id="74" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="75" Count="0" />
       <LineId Id="32" Count="0" />
       <LineId Id="35" Count="0" />
       <LineId Id="33" Count="0" />
@@ -1264,11 +1275,13 @@ END_CASE]]></ST>
       <LineId Id="173" Count="1" />
       <LineId Id="68" Count="0" />
       <LineId Id="387" Count="0" />
+      <LineId Id="819" Count="0" />
       <LineId Id="579" Count="0" />
       <LineId Id="784" Count="0" />
       <LineId Id="580" Count="1" />
       <LineId Id="390" Count="0" />
       <LineId Id="455" Count="0" />
+      <LineId Id="820" Count="0" />
       <LineId Id="476" Count="0" />
       <LineId Id="468" Count="7" />
       <LineId Id="463" Count="0" />

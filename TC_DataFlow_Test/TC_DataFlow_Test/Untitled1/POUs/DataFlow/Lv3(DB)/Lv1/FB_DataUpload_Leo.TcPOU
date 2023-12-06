@@ -1,0 +1,987 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_DataUpload_Leo" Id="{00cb256e-eb42-4ac9-877c-ceece0acd25f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DataUpload_Leo
+VAR_INPUT
+	udiDBID 		: UDINT := 1 ;
+	wsDBname 		: WSTRING(128):="Smart" ; // DB Name
+	stMachineInfo	: ST_MachineInformation;
+	stSoInfo		: ST_ShopOrderInformation;
+END_VAR
+VAR_OUTPUT
+	bBusy 		: BOOL;
+	bDone		: BOOL;
+	bWarning	: BOOL;
+	udiWarnId	: UDINT;
+	bError		: BOOL;
+	udiErrId	: UDINT;
+END_VAR
+VAR
+	//Connection
+	fbCheckDBconnection_DB				: FB_CheckDBconnection_DB;
+	
+	//DB
+	fbAlarmHistory_DB					: FB_AlarmHistory_DB;
+	fbProductionHistoryInspection_DB	: FB_ProductionHistoryInspection_DB;
+	fbOEE_ProductionReport_DB 			: FB_OEE_ProductionReport_DB;
+	fbOEE_ProductionSummary_DB			: FB_OEE_ProductionSummary_DB;
+	fbSoDuration_DB						: FB_SoDuration_DB;
+	fbStopCount_DB						: FB_StopCount_DB;
+	fbRegular_Check_Results_DB			: FB_Regular_Check_Results_DB;
+	
+	// Log
+	//fbAlarmLog		: FB_LogFile;
+	
+	//Vars
+	bIsDBAlive			: BOOL;
+	eDBStatus							: E_DataBaseStatus;
+	
+	AlarmHistoryUpload_Done:BOOL;
+	AlarmHistoryUpload_Busy:BOOL;
+	AlarmHistoryUpload_Err:BOOL;
+	
+	ProductionHistoryUpload_Done:BOOL;
+	ProductionHistoryUpload_Busy:BOOL;
+	ProductionHistoryUpload_Err:BOOL;
+	
+	ProductionReportUpload_Done:BOOL;
+	ProductionReportUpload_Busy:BOOL;
+	ProductionReportUpload_Err:BOOL;
+	
+	ProductionSummaryUpload_Done:BOOL;
+	ProductionSummaryUpload_Busy:BOOL;
+	ProductionSummaryUpload_Err:BOOL;
+	
+	RegularCheckResultsUpload_Done:BOOL;
+	RegularCheckResultsUpload_Busy:BOOL;
+	RegularCheckResultsUpload_Err:BOOL;
+	
+	SoDurationUpload_Done:BOOL;
+	SoDurationUpload_Busy:BOOL;
+	SoDurationUpload_Err:BOOL;
+	
+	StopCountUpload_Done:BOOL;
+	StopCountUpload_Busy:BOOL;
+	StopCountUpload_Err:BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbCheckDBconnection_DB(
+		udiDBID := 1, 
+		bEnable := TRUE, 
+		wsDBname := "smart", 
+		diMaxRetry:= 3, 
+		tPeriod:= T#1S, 
+		tTimeout := T#3S, 
+		bDataBaseLive => bIsDBAlive, 
+		eDataBaseStatus => eDBStatus);
+]]></ST>
+    </Implementation>
+    <Folder Name="State" Id="{78588344-82aa-4083-bfee-9e3c0a7f783b}" />
+    <Method Name="M_AlarmHistory_Upload" Id="{a7b8ab0e-76d2-41a9-b827-a81eb712d6af}">
+      <Declaration><![CDATA[METHOD M_AlarmHistory_Upload : BOOL
+VAR_INPUT
+	stAlarmInfo : ST_AlarmInfo_DB ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+//fbAlarmLog();
+
+IF iStep=0 AND bExecute THEN
+	AlarmHistoryUpload_Done:=FALSE;
+	AlarmHistoryUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbAlarmHistory_DB.M_Upload(stAlarmInfo:=stAlarmInfo) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbAlarmHistory_DB.bError AND (NOT fbAlarmHistory_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				//M_LogAlarmAndDequeue(stAlarmInfo := stAlarmInfo);
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_AlarmHistoryUploadFail);
+			ELSE
+				fbAlarmHistory_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbAlarmHistory_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbAlarmHistory_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		AlarmHistoryUpload_Done:=TRUE;
+		AlarmHistoryUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ClearStatus" Id="{e7ce412b-c4d4-4503-8281-bd07079773d3}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_ClearStatus : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE;
+bDone := FALSE;
+bError := FALSE;
+bWarning := FALSE;
+udiWarnId := 0;
+udiErrId := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionHistory_Upload" Id="{5deff94d-bc69-4b93-b59f-6da0d7dd76ca}">
+      <Declaration><![CDATA[METHOD M_ProductionHistory_Upload : BOOL
+VAR_INPUT
+	stPHI : ST_PHI_GroupData_DB ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	ProductionHistoryUpload_Done:=FALSE;
+	ProductionHistoryUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbProductionHistoryInspection_DB.M_Upload(stPHI:=stPHI) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbProductionHistoryInspection_DB.bError AND (NOT fbProductionHistoryInspection_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+			ELSE
+				fbProductionHistoryInspection_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbProductionHistoryInspection_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbProductionHistoryInspection_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		ProductionHistoryUpload_Done:=TRUE;
+		ProductionHistoryUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionReport_Upload" Id="{2754faaf-5515-4261-bbf4-d105c0dbffb1}">
+      <Declaration><![CDATA[METHOD M_ProductionReport_Upload : BOOL
+VAR_INPUT
+	stSoDuration : ST_SoDuration ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	SoDurationUpload_Done:=FALSE;
+	SoDurationUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbSoDuration_DB.M_Upload(stSoDuration:=stSoDuration) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbSoDuration_DB.bError AND (NOT fbSoDuration_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_SoDurationUploadFail);
+			ELSE
+				fbSoDuration_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbSoDuration_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbSoDuration_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		SoDurationUpload_Done:=TRUE;
+		SoDurationUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_ProductionSummary_Upload" Id="{fede929b-743d-4520-a612-b30dbf5c241e}">
+      <Declaration><![CDATA[METHOD M_ProductionSummary_Upload : BOOL
+VAR_INPUT
+	stOEE_ProductionSummary : ST_OEE_ProductionSummary ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	ProductionSummaryUpload_Done:=FALSE;
+	ProductionSummaryUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbOEE_ProductionSummary_DB.M_Upload(stOEEProductionSummary:=stOEE_ProductionSummary) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbOEE_ProductionSummary_DB.bError AND (NOT fbOEE_ProductionSummary_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionSummaryUploadFail);
+			ELSE
+				fbOEE_ProductionSummary_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbOEE_ProductionSummary_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbOEE_ProductionSummary_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		ProductionSummaryUpload_Done:=TRUE;
+		ProductionSummaryUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_RegularCheckResults_Upload" Id="{ce1596d0-4f48-4261-a584-3de6c082f1d9}">
+      <Declaration><![CDATA[METHOD M_RegularCheckResults_Upload : BOOL
+VAR_INPUT
+	stRegularCheck_Results : ST_RegularCheck_Results ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	RegularCheckResultsUpload_Done:=FALSE;
+	RegularCheckResultsUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbRegular_Check_Results_DB.M_Upload(stRcResults:=stRegularCheck_Results) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbRegular_Check_Results_DB.bError AND (NOT fbRegular_Check_Results_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_RegularCheckResultsUploadFail);
+			ELSE
+				fbRegular_Check_Results_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbRegular_Check_Results_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbRegular_Check_Results_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		RegularCheckResultsUpload_Done:=TRUE;
+		RegularCheckResultsUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Reset" Id="{ae7cd608-809e-42c6-a11e-5c3d423c6983}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD M_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF FB_CheckDBconnection_DB.bError THEN
+	FB_CheckDBconnection_DB.M_Reset();
+END_IF
+
+IF FB_AlarmHistory_DB.bError THEN
+	FB_AlarmHistory_DB.M_Reset();
+	iAHUPStep := 0;
+END_IF
+
+IF FB_OEE_ProductionReport_DB.bError THEN
+	FB_OEE_ProductionReport_DB.M_Reset();
+	iOeePRStep := 0;
+END_IF
+
+IF FB_OEE_ProductionSummary_DB.bError THEN
+	FB_OEE_ProductionSummary_DB.M_Reset();
+	iOeePSStep := 0;
+END_IF
+
+// ProductionHistoryUpload FB1
+IF FB_ProductionHistoryUpload_Thread1.bError THEN
+	FB_ProductionHistoryUpload_Thread1.M_Reset();
+END_IF
+// ProductionHistoryUpload FB2
+IF FB_ProductionHistoryUpload_Thread2.bError THEN
+	FB_ProductionHistoryUpload_Thread2.M_Reset();
+END_IF
+// ProductionHistoryUpload FB3
+IF FB_ProductionHistoryUpload_Thread3.bError THEN
+	FB_ProductionHistoryUpload_Thread3.M_Reset();
+END_IF
+// ProductionHistoryUpload FB4
+IF FB_ProductionHistoryUpload_Thread4.bError THEN
+	FB_ProductionHistoryUpload_Thread4.M_Reset();
+END_IF
+// ProductionHistoryUpload FB5
+IF FB_ProductionHistoryUpload_Thread5.bError THEN
+	FB_ProductionHistoryUpload_Thread5.M_Reset();
+END_IF
+// ProductionHistoryUpload FB6
+IF FB_ProductionHistoryUpload_Thread6.bError THEN
+	FB_ProductionHistoryUpload_Thread6.M_Reset();
+END_IF
+// ProductionHistoryUpload FB7
+IF FB_ProductionHistoryUpload_Thread7.bError THEN
+	FB_ProductionHistoryUpload_Thread7.M_Reset();
+END_IF
+// ProductionHistoryUpload FB8
+IF FB_ProductionHistoryUpload_Thread8.bError THEN
+	FB_ProductionHistoryUpload_Thread8.M_Reset();
+END_IF
+// ProductionHistoryUpload FB9
+IF FB_ProductionHistoryUpload_Thread9.bError THEN
+	FB_ProductionHistoryUpload_Thread9.M_Reset();
+END_IF
+// ProductionHistoryUpload FB10
+IF FB_ProductionHistoryUpload_Thread10.bError THEN
+	FB_ProductionHistoryUpload_Thread10.M_Reset();
+END_IF
+
+IF FB_Regular_Check_Results_DB.bError THEN
+	FB_Regular_Check_Results_DB.M_Reset();
+	iRcStep := 0;
+END_IF
+
+IF FB_SoDuration_DB.bError THEN
+	FB_SoDuration_DB.M_Reset();
+	iSDStep := 0;
+END_IF
+
+IF FB_StopCount_DB.bError THEN
+	FB_StopCount_DB.M_Reset();
+	iSCStep := 0;
+END_IF
+
+M_ClearStatus();
+M_Reset := TRUE;
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetBusy" Id="{954f43fd-ba6a-46bf-9250-a57330200457}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetBusy : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := TRUE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetDone" Id="{021f4f46-3f38-4dc7-b196-9e55701b0024}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetDone : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := FALSE;
+bBusy := FALSE;
+bDone := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetErrId" Id="{e62dcf84-77dd-44e2-bae0-d3e6322012d6}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetErrId : BOOL
+VAR_INPUT
+	eDataBaseTable	: E_DataBaseTable;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.udiErrId := eDataBaseTable;
+M_SetErrId := True;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetError" Id="{a0c5b3b7-a063-4e66-8648-6ea5d0bc0187}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bError := TRUE;
+bBusy := FALSE;
+bDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SetWarning" Id="{71302da9-8285-489a-b0d7-bcfb6b6e7fe9}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_SetWarning : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bWarning := True;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_SoDuration_Upload" Id="{2809587d-bb7d-41e2-87ad-e7a0c11870df}">
+      <Declaration><![CDATA[METHOD M_SoDuration_Upload : BOOL
+VAR_INPUT
+	stSoDuration : ST_SoDuration ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	SoDurationUpload_Done:=FALSE;
+	SoDurationUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbSoDuration_DB.M_Upload(stSoDuration:=stSoDuration) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbSoDuration_DB.bError AND (NOT fbSoDuration_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_SoDurationUploadFail);
+			ELSE
+				fbRegular_Check_Results_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbSoDuration_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbSoDuration_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		SoDurationUpload_Done:=TRUE;
+		SoDurationUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StatusMonitoring" Id="{1013a67c-c322-457f-9959-7c2326435b80}" FolderPath="State\">
+      <Declaration><![CDATA[METHOD PRIVATE M_StatusMonitoring : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[(*
+IF THIS^.bError THEN // 有異常就不繼續掃
+	RETURN;
+END_IF
+
+// Error
+IF FB_CheckDBconnection_DB.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ConnectToDBFail);
+	M_SetError();
+ELSIF fbAlarmUplaodBuffer.udiRemainQueue <= (SIZEOF(ST_AlarmInfo_DB) * cudiAlarmQRemainQtyStateErr) THEN // AlarmMsg拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer1.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer2.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer3.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer4.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer5.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer6.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer7.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer8.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer9.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+ELSIF fbPHIUploadBuffer10.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateErr) THEN // Production資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryBufferFull);
+	M_SetError();
+	
+ELSIF fbOEEProductionReportBuffer.udiRemainQueue <= (SIZEOF(ST_OEE_ProductionReport) * cudiOEEPQRemainQtyStateErr) THEN // OEE Production Report資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionReportBufferFull);
+	M_SetError();
+ELSIF fbOEEProductionSummaryBuffer.udiRemainQueue <= (SIZEOF(ST_OEE_ProductionSummary) * cudiOEEPSQRemainQtyStateErr) THEN // OEE Production Summary資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionSummaryBufferFull);
+	M_SetError();
+ELSIF fbSoDurationBuffer.udiRemainQueue <= (SIZEOF(ST_SoDuration) * cudiSDQRemainQtyStateErr) THEN // SoDuration資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_SoDurationBufferFull);
+	M_SetError();
+ELSIF fbStopCountBuffer.udiRemainQueue <= (SIZEOF(ST_StopCount) * cudiSCQRemainQtyStateErr) THEN // StopCount資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_StopCountBufferFull);
+	M_SetError();	
+ELSIF fbRcResultsBuffer.udiRemainQueue <= (SIZEOF(ST_RegularCheck_Results) * cudiRcQRemainQtyStateErr) THEN // RegularCheckResult資料拒絕上傳
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_RegularCheckResultsBufferFull);
+	M_SetError();		
+
+ELSIF FB_ProductionHistoryUpload_Thread1.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread2.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread3.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread4.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread5.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread6.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread7.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread8.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread9.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();	
+ELSIF FB_ProductionHistoryUpload_Thread10.bError THEN
+	M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionHistoryUploadFail);
+	M_SetError();		
+	
+	
+// Warning	
+ELSIF fbAlarmUplaodBuffer.udiRemainQueue <= (SIZEOF(ST_AlarmInfo_DB) * cudiAlarmQRemainQtyStateWarn) THEN
+	M_SetWarning();
+ELSIF fbPHIUploadBuffer1.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer2.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer3.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer4.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer5.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer6.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer7.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer8.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer9.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+ELSIF fbPHIUploadBuffer10.udiRemainQueue <= (SIZEOF(ST_PHI_GroupData_DB) * cudiProdQRemainQtyStateWarn) THEN
+	M_SetWarning();		
+	
+ELSIF fbOEEProductionReportBuffer.udiRemainQueue <= (SIZEOF(ST_OEE_ProductionReport) * cudiOEEPQRemainQtyStateWarn) THEN 
+	M_SetWarning();	
+ELSIF fbOEEProductionSummaryBuffer.udiRemainQueue <= (SIZEOF(ST_OEE_ProductionSummary) * cudiOEEPSQRemainQtyStateWarn) THEN 
+	M_SetWarning();	
+ELSIF fbSoDurationBuffer.udiRemainQueue <= (SIZEOF(ST_SoDuration) * cudiSDQRemainQtyStateWarn) THEN 
+	M_SetWarning();	
+ELSIF fbStopCountBuffer.udiRemainQueue <= (SIZEOF(ST_StopCount) * cudiSCQRemainQtyStateWarn) THEN 
+	M_SetWarning();		
+ELSIF fbRcResultsBuffer.udiRemainQueue <= (SIZEOF(ST_RegularCheck_Results) * cudiRcQRemainQtyStateWarn) THEN
+	M_SetWarning();	
+	
+// Busy	
+ELSIF FB_CheckDBconnection_DB.bBusy AND (NOT THIS^.bError) THEN
+	M_SetBusy();
+END_IF
+*)]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StopCount_Upload" Id="{43eba70a-309f-44f3-b8d5-a7b5d2310dd2}">
+      <Declaration><![CDATA[METHOD M_StopCount_Upload : BOOL
+VAR_INPUT
+	stStopCount : ST_StopCount ;
+	bExecute:BOOL;
+END_VAR
+VAR_INST
+	iStep:UDINT;
+	iRetryCnt	: INT;
+	tTimeOut	: TON;
+	tLastLogTime : TIME;
+END_VAR
+VAR_OUTPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tTimeOut(PT := T#10S);
+
+IF iStep=0 AND bExecute THEN
+	StopCountUpload_Done:=FALSE;
+	StopCountUpload_Busy:=TRUE;
+	iStep:=100;
+END_IF
+
+CASE iStep OF
+	0:
+	100://Check DB state
+		IF bIsDBAlive THEN//DB is alive
+			tTimeOut.IN := TRUE;
+			iRetryCnt := 1;
+			iStep:=200;
+		END_IF
+	200://Upload
+		IF fbStopCount_DB.M_Upload(stStopCount:=stStopCount) THEN
+			iRetryCnt := 1;
+			tTimeOut.IN := FALSE;
+			iStep:=1000;
+		ELSIF (fbStopCount_DB.bError AND (NOT fbStopCount_DB.bBusy)) THEN//上傳時有異常
+			
+			IF iRetryCnt >= 3 THEN
+				iRetryCnt := 1;
+				tTimeOut.IN := FALSE;
+				iStep := 1000;
+				tLastLogTime := TIME();
+				M_SetError();
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_StopCountUploadFail);
+			ELSE
+				fbStopCount_DB.M_Reset();
+				tTimeOut.IN := FALSE;
+				iStep := 300;
+			END_IF
+		
+		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
+			fbStopCount_DB.M_Reset();
+			tTimeOut.IN := FALSE;
+			iStep:=300;
+		END_IF
+	300://等待恢復連線
+		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
+			fbStopCount_DB.M_Reset();
+			tTimeOut.IN := TRUE;
+			iRetryCnt := iRetryCnt + 1;
+			iStep:=200;
+		END_IF
+	1000://Finish
+		tTimeOut.IN := FALSE;
+		StopCountUpload_Done:=TRUE;
+		StopCountUpload_Busy:=FALSE;
+		iRetryCnt := 1;
+		iStep := 0;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_DataUpload_Leo">
+      <LineId Id="44" Count="8" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_AlarmHistory_Upload">
+      <LineId Id="34" Count="1" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="64" Count="2" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="100" Count="1" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="45" Count="11" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="36" Count="4" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_ClearStatus">
+      <LineId Id="17" Count="4" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_ProductionHistory_Upload">
+      <LineId Id="17" Count="0" />
+      <LineId Id="19" Count="26" />
+      <LineId Id="47" Count="25" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_ProductionReport_Upload">
+      <LineId Id="18" Count="53" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_ProductionSummary_Upload">
+      <LineId Id="18" Count="53" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_RegularCheckResults_Upload">
+      <LineId Id="17" Count="53" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_Reset">
+      <LineId Id="102" Count="0" />
+      <LineId Id="22" Count="76" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SetBusy">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SetDone">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SetErrId">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SetError">
+      <LineId Id="6" Count="2" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SetWarning">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_SoDuration_Upload">
+      <LineId Id="17" Count="53" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_StatusMonitoring">
+      <LineId Id="239" Count="0" />
+      <LineId Id="108" Count="127" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="240" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DataUpload_Leo.M_StopCount_Upload">
+      <LineId Id="17" Count="53" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
