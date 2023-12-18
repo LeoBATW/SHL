@@ -149,6 +149,7 @@ CASE iStep OF
 		AlarmHistoryUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_AlarmHistory_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -922,6 +923,7 @@ END_CASE]]></ST>
       <LineId Id="79" Count="1" />
       <LineId Id="60" Count="0" />
       <LineId Id="15" Count="0" />
+      <LineId Id="114" Count="0" />
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_ClearStatus">

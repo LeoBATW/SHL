@@ -71,6 +71,12 @@ VAR_INST
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbAlarmHistory_DB		: FB_AlarmHistory_DB;
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -82,17 +88,42 @@ fbFileRingBuffer(sPathName:=fileName
 //DB_Test
 fbAlarmHistory_DB(udiDBID:=1);
 
+TransTrig(PT:=T#15S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+		
+		//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
 			
-			iStep:=100;
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -111,6 +142,10 @@ CASE iStep OF
 			
 			M_ST_AlarmHistory_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
+			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_AlarmInfo_DB_save);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_AlarmInfo_DB_save));
 			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
@@ -137,7 +172,10 @@ CASE iStep OF
 		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
@@ -145,7 +183,9 @@ CASE iStep OF
 		
 	400://wait done / remove Head
 	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -1245,16 +1285,30 @@ END_CASE]]></ST>
       <LineId Id="127" Count="1" />
       <LineId Id="47" Count="0" />
       <LineId Id="516" Count="0" />
+      <LineId Id="858" Count="0" />
       <LineId Id="578" Count="0" />
+      <LineId Id="859" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="48" Count="0" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="162" Count="1" />
-      <LineId Id="258" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="86" Count="0" />
+      <LineId Id="860" Count="0" />
+      <LineId Id="876" Count="0" />
+      <LineId Id="896" Count="0" />
+      <LineId Id="898" Count="1" />
+      <LineId Id="862" Count="0" />
+      <LineId Id="865" Count="0" />
+      <LineId Id="877" Count="1" />
+      <LineId Id="880" Count="0" />
+      <LineId Id="901" Count="0" />
+      <LineId Id="900" Count="0" />
+      <LineId Id="882" Count="3" />
+      <LineId Id="881" Count="0" />
+      <LineId Id="886" Count="0" />
+      <LineId Id="879" Count="0" />
+      <LineId Id="864" Count="0" />
+      <LineId Id="868" Count="7" />
+      <LineId Id="867" Count="0" />
+      <LineId Id="863" Count="0" />
+      <LineId Id="866" Count="0" />
       <LineId Id="59" Count="0" />
       <LineId Id="168" Count="0" />
       <LineId Id="384" Count="1" />
@@ -1263,7 +1317,8 @@ END_CASE]]></ST>
       <LineId Id="62" Count="0" />
       <LineId Id="125" Count="0" />
       <LineId Id="63" Count="0" />
-      <LineId Id="87" Count="1" />
+      <LineId Id="890" Count="0" />
+      <LineId Id="88" Count="0" />
       <LineId Id="64" Count="0" />
       <LineId Id="56" Count="0" />
       <LineId Id="69" Count="0" />
@@ -1271,6 +1326,10 @@ END_CASE]]></ST>
       <LineId Id="712" Count="0" />
       <LineId Id="370" Count="0" />
       <LineId Id="126" Count="0" />
+      <LineId Id="902" Count="0" />
+      <LineId Id="907" Count="0" />
+      <LineId Id="904" Count="0" />
+      <LineId Id="903" Count="0" />
       <LineId Id="90" Count="0" />
       <LineId Id="173" Count="1" />
       <LineId Id="68" Count="0" />
@@ -1287,14 +1346,20 @@ END_CASE]]></ST>
       <LineId Id="463" Count="0" />
       <LineId Id="465" Count="0" />
       <LineId Id="428" Count="0" />
-      <LineId Id="437" Count="1" />
+      <LineId Id="892" Count="0" />
+      <LineId Id="891" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="893" Count="0" />
+      <LineId Id="438" Count="0" />
       <LineId Id="440" Count="1" />
       <LineId Id="439" Count="0" />
       <LineId Id="429" Count="0" />
       <LineId Id="65" Count="0" />
+      <LineId Id="894" Count="0" />
       <LineId Id="107" Count="0" />
       <LineId Id="72" Count="0" />
-      <LineId Id="108" Count="0" />
+      <LineId Id="895" Count="0" />
+      <LineId Id="948" Count="0" />
       <LineId Id="106" Count="0" />
       <LineId Id="477" Count="0" />
       <LineId Id="74" Count="0" />

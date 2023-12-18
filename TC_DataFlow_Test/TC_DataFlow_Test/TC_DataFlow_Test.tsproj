@@ -2,8 +2,8 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.29">
 	<DataTypes>
 		<DataType>
-			<Name GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}" AutoDeleteType="true">ST_NovRam_Status</Name>
-			<BitSize>96</BitSize>
+			<Name GUID="{7514C2E3-F217-E4DE-F990-24F8D199334F}" AutoDeleteType="true">ST_NovRam_Status</Name>
+			<BitSize>128</BitSize>
 			<SubItem>
 				<Name>nowRowIndex</Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
@@ -25,6 +25,13 @@
 				</ArrayInfo>
 				<BitSize>24</BitSize>
 				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>writenCount</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000008}">UDINT</Type>
+				<Comment><![CDATA[1217]]></Comment>
+				<BitSize>32</BitSize>
+				<BitOffs>96</BitOffs>
 			</SubItem>
 		</DataType>
 		<DataType>
@@ -740,18 +747,18 @@ X64 size: 1064 bytes]]></Comment>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{5E892DE3-E0C7-5067-DDBF-6077DA49D557}" AutoDeleteType="true">ST_NovRam</Name>
-			<BitSize>4019648</BitSize>
+			<Name GUID="{53C8B3B3-886D-3217-2282-FF6F7DE90927}" AutoDeleteType="true">ST_NovRam</Name>
+			<BitSize>4019840</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
-				<Type GUID="{17AF8130-BF1C-3CD2-6D48-A290019E8A2B}">ST_NovRam_Status</Type>
+				<Type GUID="{7514C2E3-F217-E4DE-F990-24F8D199334F}">ST_NovRam_Status</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>7</Elements>
 				</ArrayInfo>
 				<Comment><![CDATA[Status
 NovRam_Status:ST_NovRam_Status;]]></Comment>
-				<BitSize>672</BitSize>
+				<BitSize>896</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
@@ -763,7 +770,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 				</ArrayInfo>
 				<Comment><![CDATA[FileRingBuffer_Status:ST_FileRingBuffer_Status;]]></Comment>
 				<BitSize>1344</BitSize>
-				<BitOffs>672</BitOffs>
+				<BitOffs>896</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>AlarmHistory</Name>
@@ -778,7 +785,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 				</ArrayInfo>
 				<Comment><![CDATA[Compressed DATA]]></Comment>
 				<BitSize>639360</BitSize>
-				<BitOffs>2048</BitOffs>
+				<BitOffs>2240</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionHistory</Name>
@@ -792,7 +799,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>766080</BitSize>
-				<BitOffs>641408</BitOffs>
+				<BitOffs>641600</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionReport</Name>
@@ -806,7 +813,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>123840</BitSize>
-				<BitOffs>1407488</BitOffs>
+				<BitOffs>1407680</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>ProductionSummary</Name>
@@ -820,7 +827,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>106560</BitSize>
-				<BitOffs>1531328</BitOffs>
+				<BitOffs>1531520</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>SoDuration</Name>
@@ -834,7 +841,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>1512000</BitSize>
-				<BitOffs>1637888</BitOffs>
+				<BitOffs>1638080</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>StopCount</Name>
@@ -848,7 +855,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>455040</BitSize>
-				<BitOffs>3149888</BitOffs>
+				<BitOffs>3150080</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
@@ -862,7 +869,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					<Elements>30</Elements>
 				</ArrayInfo>
 				<BitSize>414720</BitSize>
-				<BitOffs>3604928</BitOffs>
+				<BitOffs>3605120</BitOffs>
 			</SubItem>
 		</DataType>
 	</DataTypes>
@@ -890,7 +897,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.fbDataFlowManagement.NovRamData</Name>
-							<Type GUID="{5E892DE3-E0C7-5067-DDBF-6077DA49D557}">ST_NovRam</Type>
+							<Type GUID="{53C8B3B3-886D-3217-2282-FF6F7DE90927}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>

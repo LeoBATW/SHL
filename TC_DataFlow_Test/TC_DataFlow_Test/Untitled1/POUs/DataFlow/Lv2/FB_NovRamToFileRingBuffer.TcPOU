@@ -68,6 +68,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config	
@@ -76,23 +79,55 @@ eStrIndex:=E_DB_StructureType.AlarmHistory;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
-
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+		
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
+		
 
 	1://Open File
 		
@@ -103,14 +138,19 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.AlarmHistory[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_AlarmInfo_DB_save),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -897,31 +937,55 @@ END_CASE
       <LineId Id="458" Count="1" />
       <LineId Id="153" Count="0" />
       <LineId Id="257" Count="1" />
+      <LineId Id="532" Count="0" />
       <LineId Id="154" Count="0" />
       <LineId Id="457" Count="0" />
       <LineId Id="94" Count="0" />
       <LineId Id="305" Count="0" />
       <LineId Id="355" Count="0" />
       <LineId Id="388" Count="1" />
-      <LineId Id="306" Count="0" />
-      <LineId Id="322" Count="1" />
-      <LineId Id="308" Count="0" />
-      <LineId Id="310" Count="0" />
-      <LineId Id="313" Count="0" />
-      <LineId Id="356" Count="0" />
-      <LineId Id="321" Count="0" />
-      <LineId Id="320" Count="0" />
+      <LineId Id="565" Count="0" />
+      <LineId Id="533" Count="0" />
+      <LineId Id="535" Count="0" />
+      <LineId Id="549" Count="0" />
+      <LineId Id="557" Count="0" />
+      <LineId Id="559" Count="0" />
+      <LineId Id="556" Count="0" />
+      <LineId Id="566" Count="0" />
+      <LineId Id="554" Count="0" />
+      <LineId Id="560" Count="0" />
+      <LineId Id="568" Count="2" />
+      <LineId Id="577" Count="2" />
+      <LineId Id="571" Count="1" />
+      <LineId Id="567" Count="0" />
+      <LineId Id="576" Count="0" />
+      <LineId Id="562" Count="1" />
+      <LineId Id="561" Count="0" />
+      <LineId Id="564" Count="0" />
+      <LineId Id="553" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="558" Count="0" />
+      <LineId Id="537" Count="0" />
+      <LineId Id="540" Count="8" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="536" Count="0" />
+      <LineId Id="534" Count="0" />
       <LineId Id="309" Count="0" />
       <LineId Id="307" Count="0" />
       <LineId Id="123" Count="0" />
       <LineId Id="225" Count="0" />
       <LineId Id="124" Count="5" />
       <LineId Id="151" Count="0" />
-      <LineId Id="494" Count="2" />
+      <LineId Id="581" Count="0" />
+      <LineId Id="494" Count="0" />
+      <LineId Id="580" Count="0" />
+      <LineId Id="495" Count="1" />
       <LineId Id="493" Count="0" />
+      <LineId Id="584" Count="0" />
       <LineId Id="130" Count="0" />
       <LineId Id="194" Count="1" />
       <LineId Id="132" Count="0" />
+      <LineId Id="582" Count="1" />
       <LineId Id="136" Count="3" />
       <LineId Id="231" Count="1" />
       <LineId Id="242" Count="0" />
