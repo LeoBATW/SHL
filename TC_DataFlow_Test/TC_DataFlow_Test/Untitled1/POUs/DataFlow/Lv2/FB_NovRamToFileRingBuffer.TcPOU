@@ -919,8 +919,11 @@ CASE iStep OF
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			
 			TransTrig(IN:=TRUE);
 			
@@ -1410,7 +1413,12 @@ END_CASE
       <LineId Id="44" Count="0" />
       <LineId Id="208" Count="0" />
       <LineId Id="250" Count="0" />
-      <LineId Id="209" Count="26" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="289" Count="0" />
+      <LineId Id="211" Count="24" />
       <LineId Id="237" Count="2" />
       <LineId Id="246" Count="3" />
       <LineId Id="240" Count="5" />
