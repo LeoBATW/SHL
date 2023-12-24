@@ -44,15 +44,22 @@ IF repeatTimer.Q THEN
 		
 		IF bDoWrite THEN
 			//bDoWrite:=FALSE;
+			(*
+			AlarmHistoryData_Write.wsMsgText:="20231217_2130";
+			IF GVL.fbDataFlowManagement.M_Add_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
+				writeFailCount:=writeFailCount+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
+			*)
 			//(*
-				AlarmHistoryData_Write.wsMsgText:="20231217_2130";
-				IF GVL.fbDataFlowManagement.M_Add_AlarmHistory(addData:=AlarmHistoryData_Write) = FALSE THEN
-					writeFailCount:=writeFailCount+1;
-				END_IF
-				udiWriteCount:=udiWriteCount+1;
+			StopCount_Write.diSo_id:=3736;
+			StopCount_Write.sStop_reason:='oLe';
+			IF GVL.fbDataFlowManagement.M_Add_StopCount(addData:=StopCount_Write) = FALSE THEN
+				writeFailCount6:=writeFailCount6+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
 			//*)
 		END_IF
-		
 		
 		(*
 		
@@ -80,13 +87,7 @@ IF repeatTimer.Q THEN
 		END_IF
 		*)
 		
-		(*
-		StopCount_Write.diSo_id:=3736;
-		StopCount_Write.sStop_reason:='oeL';
-		IF GVL.fbDataFlowManagement.M_Add_StopCount(addData:=StopCount_Write) = FALSE THEN
-			writeFailCount6:=writeFailCount6+1;
-		END_IF
-		*)
+		
 		
 		(*
 		ProductionReport_Write.diOk_part_count:=9987;
@@ -129,8 +130,9 @@ END_IF
       <LineId Id="737" Count="0" />
       <LineId Id="770" Count="0" />
       <LineId Id="702" Count="0" />
-      <LineId Id="667" Count="0" />
-      <LineId Id="551" Count="0" />
+      <LineId Id="800" Count="6" />
+      <LineId Id="799" Count="0" />
+      <LineId Id="808" Count="0" />
       <LineId Id="533" Count="0" />
       <LineId Id="535" Count="0" />
       <LineId Id="735" Count="0" />
@@ -141,9 +143,7 @@ END_IF
       <LineId Id="555" Count="0" />
       <LineId Id="557" Count="5" />
       <LineId Id="556" Count="0" />
-      <LineId Id="563" Count="0" />
-      <LineId Id="565" Count="5" />
-      <LineId Id="564" Count="0" />
+      <LineId Id="563" Count="1" />
       <LineId Id="571" Count="0" />
       <LineId Id="573" Count="2" />
       <LineId Id="612" Count="0" />

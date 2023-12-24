@@ -237,13 +237,14 @@ CASE iStep OF
 		ProductionHistoryUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_ProductionHistory_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_ProductionReport_Upload" Id="{2754faaf-5515-4261-bbf4-d105c0dbffb1}">
       <Declaration><![CDATA[METHOD M_ProductionReport_Upload : BOOL
 VAR_INPUT
-	stSoDuration : ST_SoDuration ;
+	stProductionReport : ST_OEE_ProductionReport ;
 	bExecute:BOOL;
 END_VAR
 VAR_INST
@@ -260,8 +261,8 @@ END_VAR
         <ST><![CDATA[tTimeOut(PT := T#10S);
 
 IF iStep=0 AND bExecute THEN
-	SoDurationUpload_Done:=FALSE;
-	SoDurationUpload_Busy:=TRUE;
+	ProductionReportUpload_Done:=FALSE;
+	ProductionReportUpload_Busy:=TRUE;
 	iStep:=100;
 END_IF
 
@@ -274,11 +275,11 @@ CASE iStep OF
 			iStep:=200;
 		END_IF
 	200://Upload
-		IF fbSoDuration_DB.M_Upload(stSoDuration:=stSoDuration) THEN
+		IF fbOEE_ProductionReport_DB.M_Upload(stOeeProductionReport:=stProductionReport) THEN
 			iRetryCnt := 1;
 			tTimeOut.IN := FALSE;
 			iStep:=1000;
-		ELSIF (fbSoDuration_DB.bError AND (NOT fbSoDuration_DB.bBusy)) THEN//上傳時有異常
+		ELSIF (fbOEE_ProductionReport_DB.bError AND (NOT fbOEE_ProductionReport_DB.bBusy)) THEN//上傳時有異常
 			
 			IF iRetryCnt >= 3 THEN
 				iRetryCnt := 1;
@@ -286,31 +287,32 @@ CASE iStep OF
 				iStep := 1000;
 				tLastLogTime := TIME();
 				M_SetError();
-				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_SoDurationUploadFail);
+				M_SetErrId(eDataBaseTable := E_DataBaseTable.DataUpload_ProductionReportUploadFail);
 			ELSE
-				fbSoDuration_DB.M_Reset();
+				fbOEE_ProductionReport_DB.M_Reset();
 				tTimeOut.IN := FALSE;
 				iStep := 300;
 			END_IF
 		
 		ELSIF tTimeOut.Q THEN //無法上傳也沒有異常
-			fbSoDuration_DB.M_Reset();
+			fbOEE_ProductionReport_DB.M_Reset();
 			tTimeOut.IN := FALSE;
 			iStep:=300;
 		END_IF
 	300://等待恢復連線
 		IF bIsDBAlive AND (NOT THIS^.bError) THEN //等待DB恢復連線
-			fbSoDuration_DB.M_Reset();
+			fbOEE_ProductionReport_DB.M_Reset();
 			tTimeOut.IN := TRUE;
 			iRetryCnt := iRetryCnt + 1;
 			iStep:=200;
 		END_IF
 	1000://Finish
 		tTimeOut.IN := FALSE;
-		SoDurationUpload_Done:=TRUE;
-		SoDurationUpload_Busy:=FALSE;
+		ProductionReportUpload_Done:=TRUE;
+		ProductionReportUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_ProductionReport_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -385,6 +387,7 @@ CASE iStep OF
 		ProductionSummaryUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_ProductionSummary_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -458,6 +461,7 @@ CASE iStep OF
 		RegularCheckResultsUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_RegularCheckResults_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -670,6 +674,7 @@ CASE iStep OF
 		SoDurationUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_SoDuration_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -882,6 +887,7 @@ CASE iStep OF
 		StopCountUpload_Busy:=FALSE;
 		iRetryCnt := 1;
 		iStep := 0;
+		M_StopCount_Upload:=true;
 END_CASE]]></ST>
       </Implementation>
     </Method>
@@ -934,18 +940,22 @@ END_CASE]]></ST>
       <LineId Id="17" Count="0" />
       <LineId Id="19" Count="26" />
       <LineId Id="47" Count="25" />
+      <LineId Id="86" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_ProductionReport_Upload">
       <LineId Id="18" Count="53" />
+      <LineId Id="86" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_ProductionSummary_Upload">
       <LineId Id="18" Count="53" />
+      <LineId Id="86" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_RegularCheckResults_Upload">
       <LineId Id="17" Count="53" />
+      <LineId Id="84" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_Reset">
@@ -973,6 +983,7 @@ END_CASE]]></ST>
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_SoDuration_Upload">
       <LineId Id="17" Count="53" />
+      <LineId Id="83" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_StatusMonitoring">
@@ -983,6 +994,7 @@ END_CASE]]></ST>
     </LineIds>
     <LineIds Name="FB_DataUpload_Leo.M_StopCount_Upload">
       <LineId Id="17" Count="53" />
+      <LineId Id="84" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

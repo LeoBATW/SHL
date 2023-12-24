@@ -101,6 +101,7 @@ CASE iStep OF
 			
 			IF TransTrig.Q THEN//timeout
 				TransTrig(in:=FALSE);
+				
 				//force to be full
 				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
 				
@@ -116,6 +117,7 @@ CASE iStep OF
 			THEN
 				//1217
 				TransTrig(in:=FALSE);
+				
 				fileName:=M_GetFileName(structureType:=eStrIndex
 										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
 										,udiFile_Index:=udiFile_Index);
@@ -295,7 +297,13 @@ VAR_INST
 	
 	//DB
 	fbProductionHistoryInspection_DB		: FB_ProductionHistoryInspection_DB;
-	PHI_GroupData_DB : ST_PHI_GroupData_DB;
+	
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -304,21 +312,50 @@ eStrIndex:=E_DB_StructureType.ProductionHistory;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
 //DB_Test
 fbProductionHistoryInspection_DB(udiDBID:=1);
 
+TransTrig(PT:=T#20S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+	//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
+			TransTrig(IN:=TRUE);
 			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+					
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -338,38 +375,47 @@ CASE iStep OF
 			M_ST_ProductionHistory_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_PHI_GroupData_DB);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_PHI_GroupData_DB));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
 	
-		IF fbProductionHistoryInspection_DB.M_Upload(stPHI:=DataToDB) THEN
+		IF fbDataUpload_Leo.M_ProductionHistory_Upload(stPHI:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbProductionHistoryInspection_DB.M_Upload(stPHI:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-		IF NOT fbProductionHistoryInspection_DB.bError THEN//write OK
+		IF NOT fbDataUpload_Leo.ProductionHistoryUpload_Err AND fbDataUpload_Leo.ProductionHistoryUpload_Done THEN
+		//IF NOT fbProductionHistoryInspection_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
 			iStep:=330;
 			
-		ELSE//write failed need to write to log
-			;
 		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
 		END_IF
 		
 	400://wait done / remove Head
-	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -442,6 +488,12 @@ VAR_INST
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbOEE_ProductionReport_DB:FB_OEE_ProductionReport_DB;
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -450,18 +502,48 @@ eStrIndex:=E_DB_StructureType.ProductionReport;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
+
+//DB_Test
+fbOEE_ProductionReport_DB(udiDBID:=1);
+
+TransTrig(PT:=T#20S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+	//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -481,39 +563,47 @@ CASE iStep OF
 			M_ST_ProductionReport_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_AlarmInfo_DB_save);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_AlarmInfo_DB_save));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
 		
-		IF fbOEE_ProductionReport_DB.M_Upload(stOeeProductionReport:=DataToDB) THEN
+		IF fbDataUpload_Leo.M_ProductionReport_Upload(stProductionReport:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbOEE_ProductionReport_DB.M_Upload(stOeeProductionReport:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-		IF NOT fbOEE_ProductionReport_DB.bError THEN//write OK
+		IF NOT fbDataUpload_Leo.ProductionReportUpload_Err AND fbDataUpload_Leo.ProductionReportUpload_Done THEN
+		//IF NOT fbOEE_ProductionReport_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
 			iStep:=330;
 			
-		ELSE//write failed need to write to log
-			;
 		END_IF
 		
-		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+	
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
 		END_IF
 		
 	400://wait done / remove Head
-	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -586,6 +676,12 @@ VAR_INST
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbOEE_ProductionSummary_DB:FB_OEE_ProductionSummary_DB;
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -595,18 +691,47 @@ eStrIndex:=E_DB_StructureType.ProductionSummary;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
+//DB_Test
+fbOEE_ProductionSummary_DB(udiDBID:=1);
+
+TransTrig(PT:=T#20S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+	//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -626,31 +751,37 @@ CASE iStep OF
 			M_ST_ProductionSummary_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_OEE_ProductionSummary);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_OEE_ProductionSummary));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
 	
-		IF fbOEE_ProductionSummary_DB.M_Upload(stOEEProductionSummary:=DataToDB) THEN
+		IF fbDataUpload_Leo.M_ProductionSummary_Upload(stOEE_ProductionSummary:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbOEE_ProductionSummary_DB.M_Upload(stOEEProductionSummary:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-			IF NOT fbOEE_ProductionSummary_DB.bError THEN//write OK
-			
-				AnalizeIndex:=AnalizeIndex+1;
-				
-				iStep:=330;
-				
-			ELSE//write failed need to write to log
-				;
-			END_IF
+		IF NOT fbDataUpload_Leo.ProductionSummaryUpload_Err AND fbDataUpload_Leo.ProductionSummaryUpload_Done THEN
+		//IF NOT fbOEE_ProductionSummary_DB.bError THEN//write OK
 		
+			AnalizeIndex:=AnalizeIndex+1;
+			
+			iStep:=330;
+			
+		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+	
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
@@ -658,8 +789,9 @@ CASE iStep OF
 		
 	400://wait done / remove Head
 	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
-		
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		iStep:=500;
 		
 	500://wait done / check if all data got?
@@ -731,6 +863,12 @@ VAR_INST
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbRegular_Check_Results_DB:FB_Regular_Check_Results_DB;
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -740,18 +878,48 @@ eStrIndex:=E_DB_StructureType.RegularCheckResults;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
+
+//DB_Test
+fbRegular_Check_Results_DB(udiDBID:=1);
+
+TransTrig(PT:=T#20S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+		//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -770,20 +938,26 @@ CASE iStep OF
 			
 			M_ST_RegularCheckResults_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
-								
+			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_RegularCheck_Results);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_RegularCheck_Results));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
-		
-		IF fbRegular_Check_Results_DB.M_Upload(stRcResults:=DataToDB) THEN
+	
+		IF fbDataUpload_Leo.M_RegularCheckResults_Upload(stRegularCheck_Results:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbRegular_Check_Results_DB.M_Upload(stRcResults:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
-		
-		IF NOT fbRegular_Check_Results_DB.bError THEN//write OK
+	
+		IF NOT fbDataUpload_Leo.ProductionSummaryUpload_Err AND fbDataUpload_Leo.ProductionSummaryUpload_Done THEN
+		//IF NOT fbRegular_Check_Results_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
@@ -794,15 +968,20 @@ CASE iStep OF
 		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+	
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
 		END_IF
 		
 	400://wait done / remove Head
-	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -876,6 +1055,11 @@ VAR_INST
 	eStrIndex:DINT;
 	fbSoDuration_DB:FB_SoDuration_DB;
 	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -884,18 +1068,48 @@ eStrIndex:=E_DB_StructureType.SoDuration;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
+
+//DB_Test
+fbSoDuration_DB(udiDBID:=1);
+
+TransTrig(PT:=T#20S);		
+	
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+		//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -915,30 +1129,37 @@ CASE iStep OF
 			M_ST_SoDuration_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_SoDuration);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_SoDuration));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
 	
-		IF fbSoDuration_DB.M_Upload(stSoDuration:=DataToDB) THEN
+		IF fbDataUpload_Leo.M_SoDuration_Upload(stSoDuration:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbSoDuration_DB.M_Upload(stSoDuration:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-		IF NOT fbSoDuration_DB.bError THEN//write OK
+		IF NOT fbDataUpload_Leo.SoDurationUpload_Err AND fbDataUpload_Leo.SoDurationUpload_Done THEN
+		//IF NOT fbSoDuration_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
 			iStep:=330;
 			
-		ELSE//write failed need to write to log
-			;
 		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
@@ -946,7 +1167,9 @@ CASE iStep OF
 		
 	400://wait done / remove Head
 	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -1148,6 +1371,12 @@ VAR_INST
 	fileName: STRING(255);
 	eStrIndex:DINT;
 	fbStopCount_DB:FB_StopCount_DB;
+	
+	//1217
+	TransTrig:TON;
+	tempFileIndex:UDINT;
+	udiDataCount:UDINT;
+	lrTemp:LREAL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -1156,18 +1385,47 @@ eStrIndex:=E_DB_StructureType.StopCount;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,stHeader=>stHeader);
-				
+//DB_Test
+fbStopCount_DB(udiDBID:=1);
+
+TransTrig(PT:=T#20S);
+
 CASE iStep OF
 	0://check if file full 
-		IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
-		THEN
+	
+		//1217
+		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRam_BufferIndex];
+		IF tempFileIndex = udiFile_Index//now writen file index = myself file index
+		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = FALSE THEN//file not full
+			TransTrig(IN:=TRUE);
 			
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
-									,udiFile_Index:=udiFile_Index);
-			
-			iStep:=100;
+			IF TransTrig.Q THEN//timeout
+				TransTrig(in:=FALSE);
+				
+				//force to be full
+				NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] := TRUE;
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+				
+			END_IF
+		ELSE
+			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
+			THEN
+				//1217
+				TransTrig(in:=FALSE);
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
+										,udiFile_Index:=udiFile_Index);
+				
+				iStep:=100;
+			END_IF
 		END_IF
+		
 	100:// Open file
 		
 		AnalizeIndex:=0;
@@ -1187,30 +1445,37 @@ CASE iStep OF
 			M_ST_StopCount_Extract(Input:=arrDataFromFile[AnalizeIndex],Output=>DataToDB);
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
+			//1217//get count of data
+			lrTemp:=SIZEOF(ST_StopCount);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_StopCount));
+			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
 			iStep:=600;
 		END_IF
 	310:// write to DB
 		
-		IF fbStopCount_DB.M_Upload(stStopCount:=DataToDB) THEN
+		IF fbDataUpload_Leo.M_StopCount_Upload(stStopCount:=DataToDB,bExecute:=TRUE) THEN 
+		//IF fbStopCount_DB.M_Upload(stStopCount:=DataToDB) THEN
 			iStep:=320;
 		END_IF
 		
 	320://wait done
 		
-		IF NOT fbStopCount_DB.bError THEN//write OK
+		IF NOT fbDataUpload_Leo.StopCountUpload_Err AND fbDataUpload_Leo.StopCountUpload_Done THEN
+		//IF NOT fbStopCount_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
 			
 			iStep:=330;
 			
-		ELSE//write failed need to write to log
-			;
 		END_IF
 		
 	330://Check if all data in array Analized
-		IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+	
+		//1217
+		//IF AnalizeIndex < GVL.arrArrayLength[eStrIndex]-1 THEN//not done
+		IF AnalizeIndex < udiDataCount THEN//not done
 			iStep:=300;//go back
 		ELSE//array data done
 			iStep:=400;//complete this array
@@ -1218,7 +1483,9 @@ CASE iStep OF
 		
 	400://wait done / remove Head
 	
-		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		//1217
+		//fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := SIZEOF(arrDataFromFile));
+		fbFileRingBuffer.A_RemoveHead(pReadBuff := ADR(arrDataFromFile), cbReadLen := fbFileRingBuffer.cbReturn);
 		
 		iStep:=500;
 		
@@ -1296,6 +1563,7 @@ END_CASE]]></ST>
       <LineId Id="862" Count="0" />
       <LineId Id="865" Count="0" />
       <LineId Id="877" Count="1" />
+      <LineId Id="1030" Count="0" />
       <LineId Id="880" Count="0" />
       <LineId Id="901" Count="0" />
       <LineId Id="900" Count="0" />
@@ -1306,6 +1574,7 @@ END_CASE]]></ST>
       <LineId Id="864" Count="0" />
       <LineId Id="868" Count="2" />
       <LineId Id="989" Count="0" />
+      <LineId Id="1031" Count="0" />
       <LineId Id="871" Count="4" />
       <LineId Id="867" Count="0" />
       <LineId Id="863" Count="0" />
@@ -1416,72 +1685,228 @@ END_CASE]]></ST>
       <LineId Id="42" Count="0" />
       <LineId Id="187" Count="2" />
       <LineId Id="185" Count="0" />
-      <LineId Id="190" Count="0" />
-      <LineId Id="239" Count="2" />
-      <LineId Id="43" Count="26" />
+      <LineId Id="239" Count="1" />
+      <LineId Id="384" Count="0" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="385" Count="0" />
+      <LineId Id="43" Count="1" />
+      <LineId Id="386" Count="0" />
+      <LineId Id="388" Count="1" />
+      <LineId Id="430" Count="0" />
+      <LineId Id="390" Count="0" />
+      <LineId Id="387" Count="0" />
+      <LineId Id="407" Count="0" />
+      <LineId Id="432" Count="1" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="408" Count="10" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="406" Count="0" />
+      <LineId Id="395" Count="1" />
+      <LineId Id="398" Count="7" />
+      <LineId Id="393" Count="0" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="394" Count="0" />
+      <LineId Id="53" Count="16" />
       <LineId Id="339" Count="0" />
-      <LineId Id="70" Count="5" />
+      <LineId Id="70" Count="1" />
+      <LineId Id="420" Count="1" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="72" Count="3" />
       <LineId Id="78" Count="0" />
       <LineId Id="259" Count="0" />
+      <LineId Id="423" Count="0" />
       <LineId Id="235" Count="1" />
       <LineId Id="79" Count="0" />
       <LineId Id="86" Count="1" />
-      <LineId Id="93" Count="8" />
-      <LineId Id="104" Count="45" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="94" Count="4" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="104" Count="2" />
+      <LineId Id="425" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="108" Count="6" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="115" Count="2" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="118" Count="31" />
       <LineId Id="4" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ProductionReport">
-      <LineId Id="39" Count="34" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="314" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="317" Count="18" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="338" Count="2" />
+      <LineId Id="357" Count="1" />
+      <LineId Id="341" Count="4" />
+      <LineId Id="337" Count="0" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="56" Count="17" />
       <LineId Id="269" Count="0" />
-      <LineId Id="74" Count="4" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="347" Count="1" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="349" Count="0" />
+      <LineId Id="75" Count="3" />
       <LineId Id="81" Count="0" />
       <LineId Id="187" Count="0" />
+      <LineId Id="350" Count="0" />
       <LineId Id="189" Count="0" />
       <LineId Id="195" Count="0" />
       <LineId Id="194" Count="0" />
       <LineId Id="89" Count="1" />
-      <LineId Id="96" Count="9" />
-      <LineId Id="107" Count="45" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="97" Count="4" />
+      <LineId Id="104" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="352" Count="1" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="111" Count="6" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="118" Count="1" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="120" Count="32" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ProductionSummary">
-      <LineId Id="39" Count="33" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="313" Count="1" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="317" Count="18" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="338" Count="2" />
+      <LineId Id="356" Count="1" />
+      <LineId Id="341" Count="4" />
+      <LineId Id="337" Count="0" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="56" Count="16" />
       <LineId Id="269" Count="0" />
-      <LineId Id="73" Count="5" />
+      <LineId Id="73" Count="1" />
+      <LineId Id="347" Count="1" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="349" Count="0" />
+      <LineId Id="75" Count="3" />
       <LineId Id="81" Count="0" />
       <LineId Id="189" Count="0" />
+      <LineId Id="350" Count="0" />
       <LineId Id="191" Count="2" />
       <LineId Id="84" Count="0" />
       <LineId Id="90" Count="0" />
-      <LineId Id="96" Count="9" />
-      <LineId Id="107" Count="45" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="97" Count="4" />
+      <LineId Id="104" Count="1" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="352" Count="1" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="111" Count="6" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="118" Count="34" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_RegularCheckResults">
-      <LineId Id="39" Count="33" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="386" Count="3" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="390" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="393" Count="18" />
+      <LineId Id="392" Count="0" />
+      <LineId Id="414" Count="2" />
+      <LineId Id="434" Count="1" />
+      <LineId Id="417" Count="4" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="56" Count="16" />
       <LineId Id="344" Count="0" />
-      <LineId Id="73" Count="5" />
+      <LineId Id="73" Count="1" />
+      <LineId Id="423" Count="1" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="75" Count="3" />
       <LineId Id="81" Count="0" />
-      <LineId Id="272" Count="0" />
+      <LineId Id="427" Count="0" />
+      <LineId Id="426" Count="0" />
       <LineId Id="189" Count="0" />
       <LineId Id="192" Count="1" />
       <LineId Id="89" Count="1" />
+      <LineId Id="428" Count="0" />
       <LineId Id="96" Count="9" />
       <LineId Id="107" Count="0" />
-      <LineId Id="109" Count="43" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="430" Count="0" />
+      <LineId Id="429" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="111" Count="6" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="118" Count="2" />
+      <LineId Id="433" Count="0" />
+      <LineId Id="121" Count="31" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_SoDuration">
-      <LineId Id="39" Count="33" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="308" Count="3" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="318" Count="18" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="339" Count="2" />
+      <LineId Id="347" Count="1" />
+      <LineId Id="342" Count="4" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="337" Count="0" />
+      <LineId Id="56" Count="16" />
       <LineId Id="267" Count="0" />
-      <LineId Id="73" Count="5" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="349" Count="1" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="76" Count="2" />
       <LineId Id="81" Count="0" />
       <LineId Id="231" Count="0" />
+      <LineId Id="353" Count="0" />
       <LineId Id="190" Count="2" />
       <LineId Id="89" Count="1" />
-      <LineId Id="96" Count="9" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="97" Count="4" />
+      <LineId Id="104" Count="1" />
       <LineId Id="107" Count="0" />
-      <LineId Id="109" Count="43" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="111" Count="6" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="118" Count="2" />
+      <LineId Id="360" Count="0" />
+      <LineId Id="121" Count="31" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_ST_AlarmHistory_Extract">
@@ -1510,19 +1935,47 @@ END_CASE]]></ST>
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FileRingBufferToDB.M_StopCount">
-      <LineId Id="39" Count="33" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="308" Count="3" />
+      <LineId Id="45" Count="2" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="314" Count="18" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="335" Count="2" />
+      <LineId Id="343" Count="1" />
+      <LineId Id="338" Count="4" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="56" Count="16" />
       <LineId Id="267" Count="0" />
-      <LineId Id="73" Count="5" />
+      <LineId Id="73" Count="1" />
+      <LineId Id="346" Count="1" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="348" Count="0" />
+      <LineId Id="75" Count="3" />
       <LineId Id="81" Count="0" />
       <LineId Id="232" Count="0" />
+      <LineId Id="349" Count="0" />
       <LineId Id="189" Count="0" />
       <LineId Id="192" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="82" Count="0" />
       <LineId Id="90" Count="0" />
-      <LineId Id="96" Count="9" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="350" Count="0" />
+      <LineId Id="97" Count="4" />
+      <LineId Id="104" Count="1" />
       <LineId Id="107" Count="0" />
-      <LineId Id="109" Count="43" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="111" Count="5" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="117" Count="2" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="120" Count="32" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

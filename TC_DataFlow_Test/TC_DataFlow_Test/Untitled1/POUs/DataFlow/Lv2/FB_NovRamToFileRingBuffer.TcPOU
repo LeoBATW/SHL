@@ -9,9 +9,6 @@ END_VAR
 VAR_OUTPUT
 	//readData:ARRAY [0..GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
 END_VAR
-VAR
-	udiVAr1: UDINT;
-END_VAR
 VAR_IN_OUT
 	NovRamData:ST_NovRam;
 END_VAR]]></Declaration>
@@ -144,10 +141,10 @@ CASE iStep OF
 		
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
+			
 			//1217
-			udiVAr1 := NovRamData.arrNovRam_Status[eStrIndex].writenCount-1;
 			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1 DO 
-			FOR i:=0 TO udiVAr1 DO
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.AlarmHistory[udiNovRamIndex][i];
 			END_FOR
 			
@@ -266,6 +263,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -274,22 +274,58 @@ eStrIndex:=E_DB_StructureType.ProductionHistory;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+		
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -300,14 +336,18 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionHistory]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionHistory]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.ProductionHistory[udiNovRamIndex][i];
 			END_FOR
 			
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_PHI_GroupData_DB),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -381,6 +421,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -390,22 +433,57 @@ eStrIndex:=E_DB_StructureType.ProductionReport;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -416,14 +494,19 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionReport]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionReport]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.ProductionReport[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_OEE_ProductionReport),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -497,7 +580,11 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
-END_VAR]]></Declaration>
+	
+	//1217
+	TransTrig:TON;
+END_VAR
+]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
 eStrIndex:=E_DB_StructureType.ProductionSummary;
@@ -505,22 +592,58 @@ eStrIndex:=E_DB_StructureType.ProductionSummary;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+		
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -531,14 +654,19 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionSummary]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.ProductionSummary]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.ProductionSummary[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_OEE_ProductionSummary),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -612,6 +740,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -621,22 +752,57 @@ eStrIndex:=E_DB_StructureType.RegularCheckResults;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -647,12 +813,17 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.RegularCheckResults]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.RegularCheckResults]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.RegularCheckResults[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_RegularCheck_Results),
 					pReadBuff := 0, cbReadLen:=0 );
 			
 			iStep:=3;
@@ -728,6 +899,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -736,22 +910,58 @@ eStrIndex:=E_DB_StructureType.SoDuration;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+		
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -762,14 +972,19 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.SoDuration]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.SoDuration]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.SoDuration[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_SoDuration),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -843,6 +1058,9 @@ VAR_INST
 	fileName:STRING(255);
 	tempFileIndex:UDINT;
 	eStrIndex:DINT;
+	
+	//1217
+	TransTrig:TON;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config
@@ -851,22 +1069,58 @@ eStrIndex:=E_DB_StructureType.StopCount;
 fbFileRingBuffer(sPathName:=fileName
 				,bBusy=>bBusy,bError=>bError,nErrID=>nErrID
 				,cbReturn=>cbLoad,stHeader=>stHeader);
+//1217				
+TransTrig(PT:=T#10S);//10s upload one time
 
 CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
-		AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
-		THEN
-			//
-			fileName:=M_GetFileName(structureType:=eStrIndex
-									,udiNovRam_BufferIndex:=udiNovRamIndex
-									,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
-									
-			iStep:=1;
+		//1217
+		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+			
+			TransTrig(IN:=TRUE);
+			
+			IF TransTrig.Q //timeout
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE THEN//File can write
+				TransTrig(IN:=FALSE);
+				
+				//Set Row Lock
+				NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex]:=TRUE;
+				
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount := NovRamData.arrNovRam_Status[eStrIndex].writenIndex;
+				
+				//Reset Row and writenIndex
+				NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex:=(udiNovRamIndex+1)MOD GVL.NovRamBufferRatio;
+				NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=0;
+		
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
+			
+		ELSE
+			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
+			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
+			THEN
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
+				fileName:=M_GetFileName(structureType:=eStrIndex
+										,udiNovRam_BufferIndex:=udiNovRamIndex
+										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
+										
+				iStep:=1;
+			END_IF
 		END_IF
+		
 
 	1://Open File
 		
@@ -877,14 +1131,19 @@ CASE iStep OF
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
 			
-			FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.StopCount]-1 DO 
+			//1217
+			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.StopCount]-1 DO 
+			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
 				WriteData[i] := NovRamData.StopCount[udiNovRamIndex][i];
 			END_FOR
 			
+			//1217
 			//Add
-			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := SIZEOF(WriteData),
+			//		pReadBuff := 0, cbReadLen:=0 );
+			fbFileRingBuffer.A_AddTail( pWriteBuff := ADR(WriteData), cbWriteLen := NovRamData.arrNovRam_Status[eStrIndex].writenCount * SIZEOF(ST_StopCount),
 					pReadBuff := 0, cbReadLen:=0 );
-			
+					
 			iStep:=3;
 			
 		END_IF
@@ -988,8 +1247,8 @@ END_CASE
       <LineId Id="123" Count="0" />
       <LineId Id="225" Count="0" />
       <LineId Id="124" Count="5" />
+      <LineId Id="775" Count="0" />
       <LineId Id="581" Count="0" />
-      <LineId Id="623" Count="0" />
       <LineId Id="494" Count="0" />
       <LineId Id="580" Count="0" />
       <LineId Id="495" Count="1" />
@@ -1036,52 +1295,164 @@ END_CASE
       <LineId Id="137" Count="0" />
       <LineId Id="7" Count="2" />
       <LineId Id="135" Count="0" />
-      <LineId Id="11" Count="24" />
-      <LineId Id="168" Count="1" />
+      <LineId Id="207" Count="1" />
+      <LineId Id="11" Count="3" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="210" Count="25" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="238" Count="2" />
+      <LineId Id="247" Count="2" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="242" Count="4" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="25" Count="10" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="169" Count="0" />
       <LineId Id="167" Count="0" />
       <LineId Id="173" Count="0" />
-      <LineId Id="36" Count="43" />
+      <LineId Id="36" Count="3" />
+      <LineId Id="254" Count="1" />
+      <LineId Id="40" Count="39" />
       <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionReport">
-      <LineId Id="34" Count="31" />
-      <LineId Id="141" Count="1" />
+      <LineId Id="34" Count="5" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="41" Count="3" />
+      <LineId Id="179" Count="26" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="208" Count="2" />
+      <LineId Id="217" Count="3" />
+      <LineId Id="211" Count="5" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="55" Count="10" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="142" Count="0" />
       <LineId Id="140" Count="0" />
       <LineId Id="143" Count="0" />
-      <LineId Id="66" Count="43" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="224" Count="1" />
+      <LineId Id="70" Count="39" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_ProductionSummary">
-      <LineId Id="34" Count="31" />
-      <LineId Id="140" Count="1" />
+      <LineId Id="34" Count="6" />
+      <LineId Id="258" Count="1" />
+      <LineId Id="41" Count="4" />
+      <LineId Id="177" Count="26" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="206" Count="2" />
+      <LineId Id="215" Count="2" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="210" Count="4" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="55" Count="10" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="141" Count="0" />
       <LineId Id="139" Count="0" />
       <LineId Id="142" Count="0" />
-      <LineId Id="66" Count="43" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="222" Count="1" />
+      <LineId Id="70" Count="39" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_RegularCheckResults">
-      <LineId Id="34" Count="30" />
+      <LineId Id="34" Count="5" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="41" Count="3" />
+      <LineId Id="179" Count="26" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="208" Count="2" />
+      <LineId Id="217" Count="3" />
+      <LineId Id="211" Count="5" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="55" Count="9" />
       <LineId Id="142" Count="0" />
-      <LineId Id="140" Count="1" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="141" Count="0" />
       <LineId Id="65" Count="0" />
       <LineId Id="143" Count="0" />
-      <LineId Id="66" Count="43" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="70" Count="39" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_SoDuration">
-      <LineId Id="34" Count="31" />
-      <LineId Id="140" Count="1" />
+      <LineId Id="34" Count="5" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="209" Count="26" />
+      <LineId Id="237" Count="2" />
+      <LineId Id="246" Count="3" />
+      <LineId Id="240" Count="5" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="55" Count="10" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="141" Count="0" />
       <LineId Id="139" Count="0" />
       <LineId Id="145" Count="0" />
-      <LineId Id="66" Count="43" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="254" Count="1" />
+      <LineId Id="70" Count="39" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_NovRamToFileRingBuffer.M_StopCount">
-      <LineId Id="34" Count="31" />
-      <LineId Id="140" Count="1" />
+      <LineId Id="34" Count="5" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="41" Count="4" />
+      <LineId Id="176" Count="26" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="205" Count="2" />
+      <LineId Id="214" Count="3" />
+      <LineId Id="208" Count="5" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="55" Count="10" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="141" Count="0" />
       <LineId Id="139" Count="0" />
       <LineId Id="142" Count="0" />
-      <LineId Id="66" Count="43" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="221" Count="1" />
+      <LineId Id="70" Count="39" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
