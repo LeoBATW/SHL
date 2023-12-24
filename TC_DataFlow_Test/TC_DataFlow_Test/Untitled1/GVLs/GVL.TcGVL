@@ -56,10 +56,13 @@ VAR_GLOBAL CONSTANT//NovRam Management
 	'c:\_Yenlin\'//RegularCheckResults
 	];
 	
+	
 END_VAR
 
 VAR_GLOBAL
 	fbDataFlowManagement:FB_DataFlowManagement;
+	udiUpperCnt : UDINT;
+	udiLowerCnt	: UDINT;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

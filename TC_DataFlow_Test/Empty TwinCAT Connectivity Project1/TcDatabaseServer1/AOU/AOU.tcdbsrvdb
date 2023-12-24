@@ -2,7 +2,7 @@
 <Database>
   <ID>1</ID>
   <Name>AOU</Name>
-  <ServerName>LeoL-NB02\SQLEXPRESS</ServerName>
+  <ServerName>LEOL-NB02\SQLEXPRESS</ServerName>
   <DatabaseName>Smart</DatabaseName>
   <TableName />
   <Authentication>False</Authentication>

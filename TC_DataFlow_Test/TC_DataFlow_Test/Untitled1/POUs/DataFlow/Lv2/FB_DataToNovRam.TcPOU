@@ -45,7 +45,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -88,7 +88,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -129,7 +129,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -171,7 +171,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -212,7 +212,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -252,7 +252,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		
@@ -425,7 +425,7 @@ IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]=FALSE TH
 	NovRamData.arrNovRam_Status[eStrIndex].writenIndex:=NovRamData.arrNovRam_Status[eStrIndex].writenIndex+1;
 	
 	//Check if Full
-	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex] - 1) THEN
+	IF NovRamData.arrNovRam_Status[eStrIndex].writenIndex >= (GVL.arrArrayLength[eStrIndex]) THEN
 		//Set Row Lock
 		NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNowRowIndex]:=TRUE;
 		

@@ -10,6 +10,7 @@ VAR_OUTPUT
 	//readData:ARRAY [0..GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1] OF ST_AlarmInfo_DB_save;
 END_VAR
 VAR
+	udiVAr1: UDINT;
 END_VAR
 VAR_IN_OUT
 	NovRamData:ST_NovRam;
@@ -71,7 +72,8 @@ VAR_INST
 	
 	//1217
 	TransTrig:TON;
-END_VAR]]></Declaration>
+END_VAR
+]]></Declaration>
       <Implementation>
         <ST><![CDATA[//Config	
 eStrIndex:=E_DB_StructureType.AlarmHistory;
@@ -118,7 +120,12 @@ CASE iStep OF
 			IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] //NovRam full = should work
 			AND NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRamIndex][tempFileIndex] = FALSE//File can write
 			THEN
-				//
+				
+				//1217
+				TransTrig(IN:=FALSE);
+				//save writen count
+				NovRamData.arrNovRam_Status[eStrIndex].writenCount :=GVL.arrArrayLength[eStrIndex];
+				
 				fileName:=M_GetFileName(structureType:=eStrIndex
 										,udiNovRam_BufferIndex:=udiNovRamIndex
 										,udiFile_Index:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex]);
@@ -137,10 +144,10 @@ CASE iStep OF
 		
 	2://Wait Done/Add Data
 		IF fbFileRingBuffer.bBusy=FALSE AND NOT fbFileRingBuffer.bError THEN
-			
 			//1217
+			udiVAr1 := NovRamData.arrNovRam_Status[eStrIndex].writenCount-1;
 			//FOR i:=0 TO GVL.arrArrayLength[E_DB_StructureType.AlarmHistory]-1 DO 
-			FOR i:=0 TO NovRamData.arrNovRam_Status[eStrIndex].writenCount-1 DO
+			FOR i:=0 TO udiVAr1 DO
 				WriteData[i] := NovRamData.AlarmHistory[udiNovRamIndex][i];
 			END_FOR
 			
@@ -966,7 +973,13 @@ END_CASE
       <LineId Id="551" Count="0" />
       <LineId Id="558" Count="0" />
       <LineId Id="537" Count="0" />
-      <LineId Id="540" Count="8" />
+      <LineId Id="540" Count="2" />
+      <LineId Id="737" Count="0" />
+      <LineId Id="661" Count="0" />
+      <LineId Id="738" Count="0" />
+      <LineId Id="700" Count="0" />
+      <LineId Id="662" Count="1" />
+      <LineId Id="544" Count="4" />
       <LineId Id="538" Count="0" />
       <LineId Id="536" Count="0" />
       <LineId Id="534" Count="0" />
@@ -975,8 +988,8 @@ END_CASE
       <LineId Id="123" Count="0" />
       <LineId Id="225" Count="0" />
       <LineId Id="124" Count="5" />
-      <LineId Id="151" Count="0" />
       <LineId Id="581" Count="0" />
+      <LineId Id="623" Count="0" />
       <LineId Id="494" Count="0" />
       <LineId Id="580" Count="0" />
       <LineId Id="495" Count="1" />

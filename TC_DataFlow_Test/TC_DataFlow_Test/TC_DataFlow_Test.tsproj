@@ -631,7 +631,7 @@ X64 size: 1064 bytes]]></Comment>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}" AutoDeleteType="true">E_RegularCheckSensorResult</Name>
+			<Name GUID="{E4913AE8-6AA9-4504-6AC9-0BD766E9BA46}" AutoDeleteType="true">E_RegularCheckSensorResult</Name>
 			<BitSize>16</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000006}">INT</BaseType>
 			<EnumInfo>
@@ -658,11 +658,11 @@ X64 size: 1064 bytes]]></Comment>
 				</Property>
 				<Property>
 					<Name>to_string_function</Name>
-					<Value>__TO_STRING__146</Value>
+					<Value>__TO_STRING__147</Value>
 				</Property>
 				<Property>
 					<Name>to_wstring_function</Name>
-					<Value>__TO_WSTRING__146</Value>
+					<Value>__TO_WSTRING__147</Value>
 				</Property>
 				<Property>
 					<Name>generate_implicit_init_function</Name>
@@ -670,7 +670,7 @@ X64 size: 1064 bytes]]></Comment>
 			</Properties>
 		</DataType>
 		<DataType>
-			<Name GUID="{C509B653-D9A9-FBE4-C5CA-A58255E1FCDE}" AutoDeleteType="true">ST_RegularCheck_Results</Name>
+			<Name GUID="{6C1843A7-F87C-B4BD-5D74-713B1EFB4FCF}" AutoDeleteType="true">ST_RegularCheck_Results</Name>
 			<Comment><![CDATA[ X64 size: 572 bytes]]></Comment>
 			<BitSize>4608</BitSize>
 			<SubItem>
@@ -693,25 +693,25 @@ X64 size: 1064 bytes]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>eSensor</Name>
-				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<Type GUID="{E4913AE8-6AA9-4504-6AC9-0BD766E9BA46}">E_RegularCheckSensorResult</Type>
 				<BitSize>16</BitSize>
 				<BitOffs>96</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>eCamera</Name>
-				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<Type GUID="{E4913AE8-6AA9-4504-6AC9-0BD766E9BA46}">E_RegularCheckSensorResult</Type>
 				<BitSize>16</BitSize>
 				<BitOffs>112</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>eLoadcell</Name>
-				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<Type GUID="{E4913AE8-6AA9-4504-6AC9-0BD766E9BA46}">E_RegularCheckSensorResult</Type>
 				<BitSize>16</BitSize>
 				<BitOffs>128</BitOffs>
 			</SubItem>
 			<SubItem>
 				<Name>eSensor2</Name>
-				<Type GUID="{94AF34D6-5E10-58E3-18EA-06B3A7FEA3C4}">E_RegularCheckSensorResult</Type>
+				<Type GUID="{E4913AE8-6AA9-4504-6AC9-0BD766E9BA46}">E_RegularCheckSensorResult</Type>
 				<BitSize>16</BitSize>
 				<BitOffs>144</BitOffs>
 			</SubItem>
@@ -747,7 +747,7 @@ X64 size: 1064 bytes]]></Comment>
 			</SubItem>
 		</DataType>
 		<DataType>
-			<Name GUID="{53C8B3B3-886D-3217-2282-FF6F7DE90927}" AutoDeleteType="true">ST_NovRam</Name>
+			<Name GUID="{029420BE-A098-7EAC-554F-587A3474A648}" AutoDeleteType="true">ST_NovRam</Name>
 			<BitSize>4019840</BitSize>
 			<SubItem>
 				<Name>arrNovRam_Status</Name>
@@ -859,7 +859,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 			</SubItem>
 			<SubItem>
 				<Name>RegularCheckResults</Name>
-				<Type GUID="{C509B653-D9A9-FBE4-C5CA-A58255E1FCDE}">ST_RegularCheck_Results</Type>
+				<Type GUID="{6C1843A7-F87C-B4BD-5D74-713B1EFB4FCF}">ST_RegularCheck_Results</Type>
 				<ArrayInfo>
 					<LBound>0</LBound>
 					<Elements>3</Elements>
@@ -875,15 +875,20 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 	</DataTypes>
 	<Project ProjectGUID="{5319A4CC-F101-470C-8CD1-93D4777CBED1}" Target64Bit="true" ShowHideConfigurations="#x106">
 		<System>
-			<Settings MaxCpus="20" NonWinCpus="4">
-				<Cpu/>
-				<Cpu CpuId="1"/>
+			<Settings MaxCpus="20" NonWinCpus="4" RouterMemory="1073741824" MaxStackSize="4096">
+				<Cpu CpuId="18"/>
+				<Cpu CpuId="19"/>
 			</Settings>
+			<Licenses>
+				<Target>
+					<ManualSelect>{92583661-35AE-45CE-BD4F-C35BFE16F07E}</ManualSelect>
+				</Target>
+			</Licenses>
 			<Tasks>
-				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" AdtTasks="true">
+				<Task Id="3" Priority="20" CycleTime="10000" AmsPort="350" Affinity="#x00080000" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
-				<Task Id="4" Priority="1" CycleTime="10000" AmsPort="351" Affinity="#x00000001" AdtTasks="true">
+				<Task Id="4" Priority="1" CycleTime="10000" AmsPort="351" AdtTasks="true">
 					<Name>Task 4</Name>
 				</Task>
 			</Tasks>
@@ -897,7 +902,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 						<Name>Task_Consumer Retains</Name>
 						<Var>
 							<Name>GVL.fbDataFlowManagement.NovRamData</Name>
-							<Type GUID="{53C8B3B3-886D-3217-2282-FF6F7DE90927}">ST_NovRam</Type>
+							<Type GUID="{029420BE-A098-7EAC-554F-587A3474A648}">ST_NovRam</Type>
 							<InOut>7</InOut>
 						</Var>
 					</Vars>
@@ -927,6 +932,7 @@ NovRam_Status:ST_NovRam_Status;]]></Comment>
 					</TaskPouOids>
 				</Instance>
 			</Project>
+			<PlcAuxTask Affinity="#x00080000"/>
 		</Plc>
 	</Project>
 </TcSmProject>

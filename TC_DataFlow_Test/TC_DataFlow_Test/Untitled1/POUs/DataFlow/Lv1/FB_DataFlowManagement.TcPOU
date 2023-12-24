@@ -17,19 +17,19 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
-	{attribute 'hide'}
+	//{attribute 'hide'}
 	lrFileUseRate: ARRAY[0..6] OF LREAL;
-	{attribute 'hide'}
+	//{attribute 'hide'}
 	lrRamUseRate:ARRAY[0..6] OF LREAL;
 	
 	//Data To NovRam
-	{attribute 'hide'}
+	//{attribute 'hide'}
 	fbDataToNovRam : FB_DataToNovRam;
 	//NovRam To FileRingBuffer
-	{attribute 'hide'}
+	//{attribute 'hide'}
 	fbNovRamToFileRingBuffer:ARRAY [0..6] OF ARRAY[0..GVL.NovRamBufferRatio-1] OF FB_NovRamToFileRingBuffer;
 	//FileRingBuffer To DataBase
-	{attribute 'hide'}
+	//{attribute 'hide'}
 	fbFileRingBufferToDB:ARRAY [0..6] OF ARRAY [0..GVL.NovRamBufferRatio-1] OF ARRAY[0..GVL.FileRingBufferRatio-1] OF FB_FileRingBufferToDB;
 END_VAR
 ]]></Declaration>

@@ -105,6 +105,9 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\CheckBounds.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\DataFlow\Lv1\FB_DataFlowManagement.TcPOU">
       <SubType>Code</SubType>
     </Compile>

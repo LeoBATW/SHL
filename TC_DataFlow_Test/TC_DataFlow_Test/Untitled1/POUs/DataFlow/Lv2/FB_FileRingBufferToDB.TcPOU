@@ -88,7 +88,7 @@ fbFileRingBuffer(sPathName:=fileName
 //DB_Test
 fbAlarmHistory_DB(udiDBID:=1);
 
-TransTrig(PT:=T#15S);
+TransTrig(PT:=T#20S);
 
 CASE iStep OF
 	0://check if file full 
@@ -114,7 +114,8 @@ CASE iStep OF
 		ELSE
 			IF NovRamData.arrFileRingBuffer_Status[eStrIndex].bFileFull[udiNovRam_BufferIndex][udiFile_Index] = TRUE//file full = should work 
 			THEN
-			
+				//1217
+				TransTrig(in:=FALSE);
 				fileName:=M_GetFileName(structureType:=eStrIndex
 										,udiNovRam_BufferIndex:=udiNovRam_BufferIndex
 										,udiFile_Index:=udiFile_Index);
@@ -167,8 +168,6 @@ CASE iStep OF
 			
 			iStep:=330;
 			
-		ELSE//write failed need to write to log
-			;
 		END_IF
 		
 	330://Check if all data in array Analized
@@ -1305,7 +1304,9 @@ END_CASE]]></ST>
       <LineId Id="886" Count="0" />
       <LineId Id="879" Count="0" />
       <LineId Id="864" Count="0" />
-      <LineId Id="868" Count="7" />
+      <LineId Id="868" Count="2" />
+      <LineId Id="989" Count="0" />
+      <LineId Id="871" Count="4" />
       <LineId Id="867" Count="0" />
       <LineId Id="863" Count="0" />
       <LineId Id="866" Count="0" />
@@ -1342,7 +1343,8 @@ END_CASE]]></ST>
       <LineId Id="455" Count="0" />
       <LineId Id="820" Count="0" />
       <LineId Id="476" Count="0" />
-      <LineId Id="468" Count="7" />
+      <LineId Id="468" Count="4" />
+      <LineId Id="475" Count="0" />
       <LineId Id="463" Count="0" />
       <LineId Id="465" Count="0" />
       <LineId Id="428" Count="0" />

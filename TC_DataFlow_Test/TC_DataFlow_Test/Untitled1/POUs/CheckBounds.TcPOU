@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="CheckBounds" Id="{cc3b0a0e-e50d-4f16-af24-bcd8ec6b74bb}" SpecialFunc="CheckBounds">
+    <Declaration><![CDATA[// Implicitly generated code : DO NOT EDIT
+FUNCTION CheckBounds : DINT
+VAR_INPUT
+	index, lower, upper: DINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Implicitly generated code : Only an Implementation suggestion
+{noflow}
+IF  index < lower THEN
+	GVL.udiLowerCnt := GVL.udiLowerCnt + 1;
+	IF GVL.udiLowerCnt >= 1000000 THEN
+		GVL.udiLowerCnt := 0;
+	END_IF
+	CheckBounds := lower;
+ELSIF  index > upper THEN
+	GVL.udiUpperCnt := GVL.udiUpperCnt + 1;
+	IF GVL.udiUpperCnt >= 1000000 THEN
+		GVL.udiUpperCnt := 0;
+	END_IF
+	CheckBounds := upper;
+ELSE  
+	CheckBounds := index;
+END_IF
+{flow}]]></ST>
+    </Implementation>
+    <LineIds Name="CheckBounds">
+      <LineId Id="8" Count="2" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="13" Count="3" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
