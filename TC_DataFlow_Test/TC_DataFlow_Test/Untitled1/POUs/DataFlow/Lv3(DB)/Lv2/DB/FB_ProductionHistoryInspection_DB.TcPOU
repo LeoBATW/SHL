@@ -3,7 +3,7 @@
   <POU Name="FB_ProductionHistoryInspection_DB" Id="{eed554fe-dc39-4fdb-a435-ca7dd0b887f2}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ProductionHistoryInspection_DB
 VAR_INPUT
-	udiDBID	: UDINT;
+	udiDBID	: UDINT:=1;
 END_VAR
 VAR_OUTPUT
 	bBusy 		: BOOL;

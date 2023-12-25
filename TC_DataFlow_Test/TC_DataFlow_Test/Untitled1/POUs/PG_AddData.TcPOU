@@ -60,60 +60,56 @@ IF repeatTimer.Q THEN
 			
 			*)
 			
-			//(*
+			(*
 			SoDuration_Write.diSo_id:=3736;
 			SoDuration_Write.wsBatch_end_reason:="for test1224";
 			IF GVL.fbDataFlowManagement.M_Add_SoDuration(addData:=SoDuration_Write) = FALSE THEN
 				writeFailCount5:=writeFailCount5+1;
 			END_IF
-			udiWriteCount:=udiWriteCount+1;
 			
+			*)
+			(*
+			ProductionSummary_Write.diSo_id:=3736;
+			ProductionSummary_Write.diSummary_value:=22222;
+			IF GVL.fbDataFlowManagement.M_Add_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
+				writeFailCount4:=writeFailCount4+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
+			*)
+			(*
+			RegularCheckResults_Write.diRegular_check_id:=3731;
+			RegularCheckResults_Write.diSo_id:=3736;
+			RegularCheckResults_Write.wsEmployee_name_logged_in:="Leo666";
+			RegularCheckResults_Write.sSo_number:='Fred';
+			RegularCheckResults_Write.sFaam_id:='FB000120-E002-0001';
+			IF GVL.fbDataFlowManagement.M_Add_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
+				writeFailCount7:=writeFailCount7+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
+			*)
+			(*
+			ProductionHistoryData_Write.stProductHistory.sSo_number:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
+			ProductionHistoryData_Write.stProductHistory.sFaam_id:= 'FB000120-E002-0001';		// from DB
+			ProductionHistoryData_Write.stProductHistory.diSo_id:= 3736;			// from ADS  //需要對應DB的So表So_id
+			ProductionHistoryData_Write.stProductHistory.diTrack_number:= 998877;
+			IF GVL.fbDataFlowManagement.M_Add_ProductionHistoryInspection(addData:=ProductionHistoryData_Write) = FALSE THEN
+				writeFailCount2:=writeFailCount2+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
+			*)
+			//(*
+			ProductionReport_Write.diOk_part_count:=9987;
+			ProductionReport_Write.diSo_id:=3736;
+			ProductionReport_Write.sSo_number:='Fred';
+			ProductionReport_Write.sFaam_id:='FB000120-E002-0001';
+			
+			IF GVL.fbDataFlowManagement.M_Add_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
+				writeFailCount3:=writeFailCount3+1;
+			END_IF
+			udiWriteCount:=udiWriteCount+1;
 			//*)
-		END_IF
+		END_IF		
 		
-		(*
-		
-		ProductionHistoryData_Write.stProductHistory.sSo_number:= 'Fred';				// From ADS  //需要對應DB的So表的So_Number
-		ProductionHistoryData_Write.stProductHistory.sFaam_id:= 'FB000120-E002-0001';		// from DB
-		ProductionHistoryData_Write.stProductHistory.diSo_id:= 3736;			// from ADS  //需要對應DB的So表So_id
-		ProductionHistoryData_Write.stProductHistory.diTrack_number:= 998877;
-		IF GVL.fbDataFlowManagement.M_Add_ProductionHistoryInspection(addData:=ProductionHistoryData_Write) = FALSE THEN
-			writeFailCount2:=writeFailCount2+1;
-		END_IF
-		*)
-		(*
-		ProductionSummary_Write.diSo_id:=3736;
-		ProductionSummary_Write.diSummary_value:=87887;
-		IF GVL.fbDataFlowManagement.M_Add_ProductionSummary(addData:=ProductionSummary_Write) = FALSE THEN
-			writeFailCount4:=writeFailCount4+1;
-		END_IF
-		*)
-		
-		
-		
-		
-		
-		(*
-		ProductionReport_Write.diOk_part_count:=9987;
-		ProductionReport_Write.diSo_id:=3736;
-		ProductionReport_Write.sSo_number:='Fred';
-		ProductionReport_Write.sFaam_id:='FB000120-E002-0001';
-		
-		IF GVL.fbDataFlowManagement.M_Add_ProductionReport(addData:=ProductionReport_Write) = FALSE THEN
-			writeFailCount3:=writeFailCount3+1;
-		END_IF
-		*)
-				
-		(*
-		RegularCheckResults_Write.diRegular_check_id:=3731;
-		RegularCheckResults_Write.diSo_id:=3736;
-		RegularCheckResults_Write.wsEmployee_name_logged_in:="Leo8787";
-		RegularCheckResults_Write.sSo_number:='Fred';
-		RegularCheckResults_Write.sFaam_id:='FB000120-E002-0001';
-		IF GVL.fbDataFlowManagement.M_Add_RegularCheckResults(addData:=RegularCheckResults_Write) = FALSE THEN
-			writeFailCount7:=writeFailCount7+1;
-		END_IF
-		*)
 	END_FOR
 END_IF
 
@@ -139,25 +135,18 @@ END_IF
       <LineId Id="837" Count="0" />
       <LineId Id="839" Count="6" />
       <LineId Id="849" Count="0" />
-      <LineId Id="838" Count="0" />
-      <LineId Id="808" Count="0" />
-      <LineId Id="533" Count="0" />
-      <LineId Id="535" Count="0" />
-      <LineId Id="735" Count="0" />
-      <LineId Id="536" Count="6" />
-      <LineId Id="534" Count="0" />
-      <LineId Id="544" Count="5" />
-      <LineId Id="543" Count="0" />
-      <LineId Id="555" Count="1" />
-      <LineId Id="563" Count="1" />
-      <LineId Id="571" Count="0" />
-      <LineId Id="573" Count="2" />
-      <LineId Id="612" Count="0" />
-      <LineId Id="576" Count="7" />
-      <LineId Id="638" Count="0" />
-      <LineId Id="584" Count="1" />
-      <LineId Id="613" Count="1" />
-      <LineId Id="586" Count="2" />
+      <LineId Id="851" Count="5" />
+      <LineId Id="858" Count="0" />
+      <LineId Id="850" Count="0" />
+      <LineId Id="894" Count="9" />
+      <LineId Id="857" Count="0" />
+      <LineId Id="905" Count="7" />
+      <LineId Id="914" Count="0" />
+      <LineId Id="904" Count="0" />
+      <LineId Id="915" Count="8" />
+      <LineId Id="927" Count="0" />
+      <LineId Id="913" Count="0" />
+      <LineId Id="582" Count="0" />
       <LineId Id="572" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="42" Count="0" />

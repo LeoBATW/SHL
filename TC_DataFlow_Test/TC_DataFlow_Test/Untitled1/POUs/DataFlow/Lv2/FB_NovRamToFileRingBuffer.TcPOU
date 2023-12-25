@@ -87,8 +87,11 @@ CASE iStep OF
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			
 			TransTrig(IN:=TRUE);
 			
@@ -283,9 +286,11 @@ CASE iStep OF
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
-			
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			TransTrig(IN:=TRUE);
 			
 			IF TransTrig.Q //timeout
@@ -440,10 +445,13 @@ CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
-			
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			TransTrig(IN:=TRUE);
 			
 			IF TransTrig.Q //timeout
@@ -601,9 +609,11 @@ CASE iStep OF
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
-			
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			TransTrig(IN:=TRUE);
 			
 			IF TransTrig.Q //timeout
@@ -759,10 +769,13 @@ CASE iStep OF
 	0://NovRam full detect / file full detect
 		
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
+		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
-			
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN	
 			TransTrig(IN:=TRUE);
 			
 			IF TransTrig.Q //timeout
@@ -1081,9 +1094,11 @@ CASE iStep OF
 		tempFileIndex:=NovRamData.arrFileRingBuffer_Status[eStrIndex].nowFileIndex[udiNovRamIndex];
 		
 		//1217
-		IF NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
-		AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 THEN//has been writen
-			
+		IF NovRamData.arrNovRam_Status[eStrIndex].nowRowIndex = udiNovRamIndex//now writen Ram index = myself Ram index
+		AND_THEN
+			NovRamData.arrNovRam_Status[eStrIndex].RowDataLocked[udiNovRamIndex] = FALSE//not full and 
+			AND NovRamData.arrNovRam_Status[eStrIndex].writenIndex > 0 //has been writen
+		THEN
 			TransTrig(IN:=TRUE);
 			
 			IF TransTrig.Q //timeout
@@ -1214,8 +1229,10 @@ END_CASE
       <LineId Id="355" Count="0" />
       <LineId Id="388" Count="1" />
       <LineId Id="565" Count="0" />
+      <LineId Id="812" Count="1" />
       <LineId Id="533" Count="0" />
       <LineId Id="535" Count="0" />
+      <LineId Id="814" Count="0" />
       <LineId Id="549" Count="0" />
       <LineId Id="557" Count="0" />
       <LineId Id="559" Count="0" />
@@ -1302,6 +1319,7 @@ END_CASE
       <LineId Id="11" Count="3" />
       <LineId Id="209" Count="0" />
       <LineId Id="251" Count="0" />
+      <LineId Id="288" Count="1" />
       <LineId Id="210" Count="25" />
       <LineId Id="15" Count="0" />
       <LineId Id="238" Count="2" />
@@ -1329,7 +1347,10 @@ END_CASE
       <LineId Id="40" Count="0" />
       <LineId Id="178" Count="0" />
       <LineId Id="41" Count="3" />
-      <LineId Id="179" Count="26" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="259" Count="1" />
+      <LineId Id="180" Count="25" />
       <LineId Id="45" Count="0" />
       <LineId Id="208" Count="2" />
       <LineId Id="217" Count="3" />
@@ -1353,7 +1374,9 @@ END_CASE
       <LineId Id="34" Count="6" />
       <LineId Id="258" Count="1" />
       <LineId Id="41" Count="4" />
-      <LineId Id="177" Count="26" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="293" Count="1" />
+      <LineId Id="178" Count="25" />
       <LineId Id="176" Count="0" />
       <LineId Id="206" Count="2" />
       <LineId Id="215" Count="2" />
@@ -1381,7 +1404,10 @@ END_CASE
       <LineId Id="40" Count="0" />
       <LineId Id="178" Count="0" />
       <LineId Id="41" Count="3" />
-      <LineId Id="179" Count="26" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="259" Count="1" />
+      <LineId Id="180" Count="25" />
       <LineId Id="45" Count="0" />
       <LineId Id="208" Count="2" />
       <LineId Id="217" Count="3" />
@@ -1443,7 +1469,9 @@ END_CASE
       <LineId Id="40" Count="0" />
       <LineId Id="256" Count="0" />
       <LineId Id="41" Count="4" />
-      <LineId Id="176" Count="26" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="289" Count="1" />
+      <LineId Id="177" Count="25" />
       <LineId Id="175" Count="0" />
       <LineId Id="205" Count="2" />
       <LineId Id="214" Count="3" />

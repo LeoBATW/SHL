@@ -564,8 +564,8 @@ CASE iStep OF
 			//DataToDB:=arrDataFromFile[AnalizeIndex];
 			
 			//1217//get count of data
-			lrTemp:=SIZEOF(ST_AlarmInfo_DB_save);
-			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_AlarmInfo_DB_save));
+			lrTemp:=SIZEOF(ST_OEE_ProductionReport);
+			udiDataCount:=LREAL_TO_UDINT(fbFileRingBuffer.cbReturn / SIZEOF(ST_OEE_ProductionReport));
 			
 			iStep:=310;
 		ELSIF NOT fbFileRingBuffer.bBusy AND fbFileRingBuffer.bError THEN//Empty
@@ -956,7 +956,7 @@ CASE iStep OF
 		
 	320://wait done
 	
-		IF NOT fbDataUpload_Leo.ProductionSummaryUpload_Err AND fbDataUpload_Leo.ProductionSummaryUpload_Done THEN
+		IF NOT fbDataUpload_Leo.RegularCheckResultsUpload_Err AND fbDataUpload_Leo.RegularCheckResultsUpload_Done THEN
 		//IF NOT fbRegular_Check_Results_DB.bError THEN//write OK
 		
 			AnalizeIndex:=AnalizeIndex+1;
